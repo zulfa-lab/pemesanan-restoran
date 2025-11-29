@@ -8,7 +8,7 @@
 <style>
   :root { 
     --primary: #2d3436; 
-    --accent: #0984e3; /* Biru Profesional */
+    --accent: #0984e3; 
     --success: #00b894; 
     --warning: #fdcb6e;
     --danger: #d63031;
@@ -63,7 +63,7 @@
   }
   .page-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
 
-  /* --- TICKET CARD (KITCHEN & CASHIER) --- */
+  /* --- TICKET CARD --- */
   .ticket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
   .ticket {
     background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
@@ -107,6 +107,10 @@
       border-radius:16px; padding:25px; overflow-y:auto; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   @keyframes popUp { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+  
+  /* SCROLLBAR HIDER */
+  .scroll-h::-webkit-scrollbar { display: none; }
+  .scroll-h { -ms-overflow-style: none; scrollbar-width: none; }
 
 </style>
 </head>
@@ -157,7 +161,6 @@
         <div class="page-title" id="pageTitle">Halaman</div>
         <button class="btn btn-ghost" onclick="kembaliKeDash()">⬅ Menu Utama</button>
     </div>
-    
     <div id="kontenFitur"></div>
 </div>
 
@@ -166,7 +169,7 @@
   import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // --- CONFIG (Pastikan Config Benar) ---
+  // --- CONFIG ---
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
     authDomain: "pemesanan-restoran.firebaseapp.com",
@@ -192,17 +195,14 @@
   initListeners();
 
   function initListeners(){
-      // Pesanan
       onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
           pesananList = snap.docs.map(d => ({id:d.id, ...d.data()}));
           refreshCurrentView();
       });
-      // Menu
       onSnapshot(collection(db, "menus"), (snap)=>{
           menus = snap.docs.map(d => ({id:d.id, ...d.data()}));
           refreshCurrentView();
       });
-      // Settings (Meja & Auth)
       onSnapshot(doc(db, "settings", "toko"), (s) => { if(s.exists()) totalMeja = s.data().totalMeja || 5; });
       onSnapshot(doc(db, "settings", "auth"), (s) => {
           const statusEl = document.getElementById("statusPass");
@@ -258,7 +258,7 @@
       else if(role === 'admin') { title.innerText = "📊 Admin Dashboard"; renderAdmin(el); }
   }
 
-  // 1. RENDER DAPUR (TICKET STYLE)
+  // 1. RENDER DAPUR
   function renderDapur(el){
       const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
       if(!tasks.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">😴 Tidak ada antrian masak</div>`; return; }
@@ -288,7 +288,7 @@
       el.innerHTML = h;
   }
 
-  // 2. RENDER KASIR (TICKET STYLE)
+  // 2. RENDER KASIR
   function renderKasir(el){
       const orders = pesananList.filter(p => p.status !== 'Selesai');
       if(!orders.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">✨ Semua transaksi beres</div>`; return; }
@@ -296,8 +296,6 @@
       let h = `<div class="ticket-grid">`;
       orders.forEach(p => {
           let isUnpaid = p.status === "Menunggu Pembayaran";
-          let badgeClass = isUnpaid ? "bg-unpaid" : (p.status==='Siap'?'bg-ready':'bg-process');
-          
           h += `
           <div class="ticket">
               <div class="ticket-header" style="background:#f8f9fa">
@@ -323,7 +321,7 @@
       el.innerHTML = h;
   }
 
-  // 3. RENDER ADMIN (WIDGET STYLE)
+  // 3. RENDER ADMIN (QR CODE FIXED - HORIZONTAL SCROLL)
   function renderAdmin(el){
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
@@ -369,13 +367,27 @@
           </div>
 
           <div class="ticket">
-              <div class="ticket-header">⚙️ Pengaturan</div>
+              <div class="ticket-header">⚙️ & 🖨️ Pengaturan</div>
               <div class="ticket-body">
                   <label>Jumlah Meja (QR):</label>
                   <div style="display:flex; gap:5px; margin-bottom:15px">
                       <input type="number" id="inputTotalMeja" value="${totalMeja}" style="margin:0">
-                      <button class="btn btn-green" onclick="updateTotalMeja()">Save</button>
+                      <button class="btn btn-green" onclick="updateTotalMeja()">Set</button>
                   </div>
+                  
+                  <p style="margin:0 0 10px 0; font-size:12px; color:#666">Geser ke samping untuk lihat meja lain ➡</p>
+                  <div class="scroll-h" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;">
+                    ${Array.from({length:totalMeja}, (_, i) => i + 1).map(i => {
+                        let link = `${window.location.href.replace("staff.html", "index.html")}?table=${i}`;
+                        let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+                        return `
+                        <div style="min-width:100px; text-align:center; border:1px solid #eee; padding:10px; border-radius:8px;">
+                            <img src="${qr}" style="width:100%; display:block">
+                            <small>Meja ${i}</small>
+                        </div>`
+                    }).join('')}
+                  </div>
+
                   <hr>
                   <div style="margin-top:10px">
                     <label>Pass Staff:</label>
@@ -385,21 +397,8 @@
                     <label>Pass Owner:</label>
                     <div style="display:flex; gap:5px"><input id="newAdminPass" placeholder="${adminPass}" style="margin:0"><button class="btn btn-red" onclick="gantiPass('admin')">Up</button></div>
                   </div>
-              </div>
-          </div>
-          
-          <div class="ticket">
-              <div class="ticket-header">🖨️ Cetak QR</div>
-              <div class="ticket-body" style="text-align:center">
-                  <p>Generate QR untuk ${totalMeja} meja.</p>
-                  <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-height:150px; overflow-y:auto">
-                    ${Array.from({length:totalMeja}, (_, i) => i + 1).map(i => {
-                        let link = `${window.location.href.replace("staff.html", "index.html")}?table=${i}`;
-                        return `<a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(link)}" target="_blank" class="btn btn-ghost" style="font-size:12px; border:1px solid #eee">Meja ${i}</a>`
-                    }).join('')}
-                  </div>
                   <hr>
-                  <button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ HAPUS DATA TRANSAKSI</button>
+                  <button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ HAPUS DATA</button>
               </div>
           </div>
       </div>
@@ -421,7 +420,7 @@
       }
   }
 
-  // --- LOGIC ACTIONS (SAMA SEPERTI SEBELUMNYA) ---
+  // --- ACTIONS ---
   window.cariAdminDOM = (val) => {
       adminKeyword = val.toLowerCase();
       document.querySelectorAll(".admin-search-item").forEach(el => {
