@@ -63,7 +63,8 @@
   // Global Data
   let pesananList = [];
   let menus = [];
-  let totalMeja = 5; // Default awal sebelum load dari DB
+  let totalMeja = 5; 
+  let adminKeyword = ""; 
 
   // --- LOGIKA LOGIN ---
   window.cekLogin = () => {
@@ -209,7 +210,8 @@
       // B. Manajemen Menu
       h += `<div class="card">
         <h3>🍔 Manajemen Menu</h3>
-        <div style="background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #ddd">
+        
+        <div style="background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px">
             <b>+ Tambah Menu Baru:</b>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px">
                 <input id="newMenuName" placeholder="Nama Makanan..." style="margin:0">
@@ -225,8 +227,15 @@
             </div>
         </div>
 
-        <div style="margin-top:15px; max-height:300px; overflow-y:auto">
-            ${menus.map(m => `
+        <input type="text" placeholder="🔍 Cari menu untuk dihapus..." 
+               value="${adminKeyword}" 
+               oninput="cariMenuAdmin(this.value)"
+               style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px; margin-bottom:10px">
+
+        <div style="max-height:300px; overflow-y:auto; border-top:1px solid #eee">
+            ${menus
+                .filter(m => m.nama.toLowerCase().includes(adminKeyword.toLowerCase())) // Filter Search
+                .map(m => `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee">
                     <div>
                         <b>${m.nama}</b> <span style="font-size:10px; background:#eee; padding:2px 5px; border-radius:4px">${m.kategori || 'Umum'}</span><br>
@@ -235,10 +244,12 @@
                     <button class="btn btn-red" style="padding:4px 10px; font-size:12px; margin:0" onclick="hapusMenu('${m.id}')">Hapus</button>
                 </div>
             `).join('')}
+            
+            ${menus.filter(m => m.nama.toLowerCase().includes(adminKeyword.toLowerCase())).length === 0 ? '<p style="text-align:center; padding:10px; color:#999">Tidak ditemukan</p>' : ''}
         </div>
       </div>`;
 
-      // C. SETUP JUMLAH MEJA (FITUR BARU)
+      // C. SETUP JUMLAH MEJA
       h += `<div class="card">
           <h3>🪑 Pengaturan Meja</h3>
           <p>Total meja di restoran saat ini:</p>
@@ -248,13 +259,12 @@
           </div>
       </div>`;
 
-      // D. QR CODE GENERATOR (OTOMATIS MENGIKUTI JUMLAH MEJA)
+      // D. QR CODE GENERATOR
       let baseURL = window.location.href.replace("staff.html", "index.html");
       
       h += `<div class="card"><h3>🖨️ Cetak QR (${totalMeja} Meja)</h3>
       <div style="display:flex; flex-wrap:wrap; gap:10px">`;
       
-      // Loop Meja Sesuai Settingan Firebase
       for(let i=1; i<=totalMeja; i++){
           let link = `${baseURL}?table=${i}`;
           let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
@@ -273,6 +283,12 @@
       el.innerHTML = h;
   }
 
+  // --- FUNGSI SEARCH ADMIN ---
+  window.cariMenuAdmin = (val) => {
+      adminKeyword = val;
+      // Perbarui tampilan admin tanpa mengubah tab
+      renderFitur('admin'); 
+  }
   // --- ACTIONS ---
   window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
   
@@ -317,3 +333,4 @@
 </script>
 </body>
 </html>
+
