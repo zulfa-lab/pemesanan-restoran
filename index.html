@@ -45,6 +45,17 @@
 
   let menus = [];
   let cart = [];
+  let myOrders = []; 
+
+  onSnapshot(collection(db, "pesanan"), (snapshot) => {
+    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+   
+        myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
+    }
+    
+    render(); 
+  });
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
 
   // 1. Cek Meja dulu
@@ -77,8 +88,59 @@
           <button class="btn btn-success" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+ Tambah</button>
         </div>`;
     });
-    html += `</div>`;
+    html += `</div>`; 
 
+    if(typeof myOrders !== 'undefined' && myOrders.length > 0) {
+        html += `<div class="card" style="background:#f0f8ff; border:1px solid #3498db; margin-top:15px">
+            <h3>📢 Status Pesanan</h3>`;
+            
+        myOrders.forEach(p => {
+            let statusText = "";
+            let warna = "#333";
+            let bgWarna = "#fff";
+
+            // Logika Warna Status
+            if(p.status === "Menunggu Pembayaran") {
+                statusText = "⏳ Menunggu Pembayaran (Ke Kasir)";
+                warna = "#d35400"; // Orange tua
+                bgWarna = "#fff3cd"; // Kuning muda
+            } else if (p.status === "Diproses") {
+                statusText = "🔥 Sedang Dimasak";
+                warna = "#2980b9"; // Biru
+                bgWarna = "#dff9fb"; // Biru muda
+            } else if (p.status === "Siap") {
+                statusText = "✅ Makanan Siap!";
+                warna = "#27ae60"; // Hijau
+                bgWarna = "#d4edda"; // Hijau muda
+            }
+
+            html += `
+            <div style="background:${bgWarna}; padding:10px; border-left:5px solid ${warna}; margin-bottom:10px; border-radius:4px">
+                <div style="display:flex; justify-content:space-between">
+                    <b style="color:${warna}">${statusText}</b>
+                    <b>Rp ${p.total.toLocaleString()}</b>
+                </div>
+                <ul style="margin:5px 0; padding-left:20px; font-size:0.9em; color:#555">
+                    ${p.items.map(i=>`<li>${i.nama} x${i.qty}</li>`).join('')}
+                </ul>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+
+    html += `<div class="card" id="cartArea" style="margin-top:15px">Keranjang Kosong</div>`;
+    
+    html += `<div class="card">
+        <textarea id="catatan" placeholder="Catatan (opsional, misal: Jangan pedas)"></textarea>
+        <button class="btn btn-primary" onclick="checkout()">Kirim Pesanan 🚀</button>
+    </div>`;
+
+    // Render HTML ke layar
+    document.getElementById("app").innerHTML = html;
+    
+    // Panggil fungsi renderCart biar keranjang tetap muncul
+    renderCart();
+  };
     // Area Keranjang
     html += `<div class="card" id="cartArea">Keranjang Kosong</div>`;
     
@@ -127,21 +189,29 @@
 
   window.checkout = async () => {
     if(!cart.length) return alert("Pilih menu dulu ya!");
-    if(!confirm("Sudah yakin dengan pesanan ini?")) return;
+    if(!confirm("Kirim pesanan? Mohon segera lakukan pembayaran di Kasir setelah ini.")) return;
     
     const catatan = document.getElementById("catatan").value;
     const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
 
     try {
       await addDoc(collection(db, "pesanan"), {
-        meja: meja, items: cart, catatan, total, status: "Diproses",
-        createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID")
+        meja: meja, 
+        items: cart, 
+        catatan, 
+        total, 
+        // UBAH DISINI: Status awal bukan 'Diproses', tapi 'Menunggu Pembayaran'
+        status: "Menunggu Pembayaran",
+        createdAt: serverTimestamp(), 
+        tanggalString: new Date().toLocaleString("id-ID")
       });
-      alert("Pesanan Berhasil! Mohon tunggu.");
-      cart = []; render();
+      
+      alert("Pesanan Terkirim! Silakan menuju KASIR untuk pembayaran.");
+      cart = []; 
+      // Kita panggil render biar keranjang kosong
+      render();
     } catch(e){ alert("Gagal: " + e.message); }
   };
-
   window.gantiMeja = () => {
       sessionStorage.removeItem("meja");
       location.reload();
@@ -150,3 +220,4 @@
 </script>
 </body>
 </html>
+
