@@ -6,7 +6,6 @@
 <title>Sistem Staff Resto</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  /* Style mirip tapi lebih padat untuk admin */
   :root{ --primary:#2c3e50; --acc:#3498db; --bg:#ecf0f1; }
   body{ font-family:'Poppins',sans-serif; background:var(--bg); margin:0; padding:20px; }
   .card{ background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:15px; }
@@ -44,29 +43,31 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } 
+  // Perhatikan: saya menambah 'setDoc' di sini
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
-  apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
-  authDomain: "pemesanan-restoran.firebaseapp.com",
-  projectId: "pemesanan-restoran",
-  storageBucket: "pemesanan-restoran.firebasestorage.app",
-  messagingSenderId: "257315829382",
-  appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
-  measurementId: "G-PPE58FRCLL"
-};
+    apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
+    authDomain: "pemesanan-restoran.firebaseapp.com",
+    projectId: "pemesanan-restoran",
+    storageBucket: "pemesanan-restoran.firebasestorage.app",
+    messagingSenderId: "257315829382",
+    appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
+    measurementId: "G-PPE58FRCLL"
+  };
+
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
   // Global Data
   let pesananList = [];
   let menus = [];
+  let totalMeja = 5; // Default awal sebelum load dari DB
 
   // --- LOGIKA LOGIN ---
   window.cekLogin = () => {
       const p = document.getElementById("passInput").value;
-      // PASSWORDNYA "admin123"
       if(p === "admin123"){ 
           document.getElementById("loginPage").classList.add("hidden");
           document.getElementById("dashboardPage").classList.remove("hidden");
@@ -90,23 +91,35 @@
 
   // --- DATA LISTENER ---
   function initListeners(){
-      // Pesanan
+      // 1. Pesanan
       onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
           pesananList = snap.docs.map(d => ({id:d.id, ...d.data()}));
-          // Refresh tampilan jika sedang buka halaman tertentu
-          const mode = document.getElementById("kontenFitur").getAttribute("data-mode");
-          if(mode) renderFitur(mode);
+          refreshCurrentView();
       });
-      // Menu
+      // 2. Menu
       onSnapshot(collection(db, "menus"), (snap)=>{
           menus = snap.docs.map(d => ({id:d.id, ...d.data()}));
+          refreshCurrentView();
+      });
+      // 3. Config Meja (Fitur Baru)
+      // Kita simpan di collection 'settings', dokumen bernama 'toko'
+      onSnapshot(doc(db, "settings", "toko"), (docSnap) => {
+          if (docSnap.exists()) {
+              totalMeja = docSnap.data().totalMeja || 5;
+              refreshCurrentView();
+          }
       });
   }
 
-  // --- RENDER UTAMA ---
+  function refreshCurrentView() {
+      const mode = document.getElementById("kontenFitur").getAttribute("data-mode");
+      if(mode) renderFitur(mode);
+  }
+
+  // --- ROUTING RENDER ---
   function renderFitur(role){
       const el = document.getElementById("kontenFitur");
-      el.setAttribute("data-mode", role); // nandain lagi buka apa
+      el.setAttribute("data-mode", role); 
       
       if(role === 'dapur') renderDapur(el);
       else if(role === 'kasir') renderKasir(el);
@@ -116,10 +129,6 @@
   // 1. DAPUR
   function renderDapur(el){
       let h = `<div class="card"><h3>👨‍🍳 Dapur</h3>`;
-      
-      // FILTER PENTING:
-      // Dapur HANYA melihat yang 'Diproses' atau 'Siap'.
-      // Yang 'Menunggu Pembayaran' JANGAN ditampilkan.
       const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
       
       if(!tasks.length) h += "<i>Belum ada pesanan masuk (yang sudah lunas).</i>";
@@ -144,12 +153,8 @@
   }
 
   // 2. KASIR
-function renderKasir(el){
+  function renderKasir(el){
       let h = `<div class="card"><h3>🖥️ Kasir (Pembayaran)</h3>`;
-      
-      // (Bagian Tambah Menu SUDAH DIHAPUS dari sini)
-
-      // --- LOGIKA LIST TRANSAKSI ---
       let activeOrders = pesananList.filter(p => p.status !== 'Selesai');
       
       if(activeOrders.length === 0) h += `<i>Belum ada pesanan aktif.</i>`;
@@ -183,10 +188,10 @@ function renderKasir(el){
       h += `</div>`;
       el.innerHTML = h;
   }
-  
-  // 3. ADMIN (LENGKAP: DASHBOARD + MANAJEMEN MENU + QR)
- function renderAdmin(el){
-      // (Bagian Dashboard Analitik tetap sama, saya singkat biar hemat baris)
+
+  // 3. ADMIN (DENGAN MANAJEMEN MEJA)
+  function renderAdmin(el){
+      // A. Dashboard Analitik
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
 
@@ -201,24 +206,21 @@ function renderKasir(el){
         </div>
       </div>`;
 
-      // --- FORM INPUT MENU BARU (ADA KATEGORI) ---
+      // B. Manajemen Menu
       h += `<div class="card">
         <h3>🍔 Manajemen Menu</h3>
         <div style="background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #ddd">
             <b>+ Tambah Menu Baru:</b>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px">
                 <input id="newMenuName" placeholder="Nama Makanan..." style="margin:0">
-                
                 <div style="display:flex; gap:10px">
                     <select id="newMenuCat" style="flex:1; padding:10px; border-radius:5px; border:1px solid #ccc">
                         <option value="Makanan">🍛 Makanan</option>
                         <option value="Minuman">🥤 Minuman</option>
                         <option value="Cemilan">🍟 Cemilan</option>
                     </select>
-
                     <input id="newMenuPrice" type="number" placeholder="Harga" style="flex:1; margin:0">
                 </div>
-                
                 <button class="btn btn-blue" style="width:100%" onclick="tambahMenu()">Simpan Menu</button>
             </div>
         </div>
@@ -236,40 +238,76 @@ function renderKasir(el){
         </div>
       </div>`;
 
-      // (Bagian QR Code tetap sama)
+      // C. SETUP JUMLAH MEJA (FITUR BARU)
+      h += `<div class="card">
+          <h3>🪑 Pengaturan Meja</h3>
+          <p>Total meja di restoran saat ini:</p>
+          <div style="display:flex; gap:10px">
+              <input type="number" id="inputTotalMeja" value="${totalMeja}" style="margin:0">
+              <button class="btn btn-green" style="margin:0" onclick="updateTotalMeja()">Simpan Perubahan</button>
+          </div>
+      </div>`;
+
+      // D. QR CODE GENERATOR (OTOMATIS MENGIKUTI JUMLAH MEJA)
       let baseURL = window.location.href.replace("staff.html", "index.html");
-      h += `<div class="card"><h3>🖨️ Cetak QR</h3>... (QR Code) ...</div>`; // Persingkat di sini
+      
+      h += `<div class="card"><h3>🖨️ Cetak QR (${totalMeja} Meja)</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:10px">`;
+      
+      // Loop Meja Sesuai Settingan Firebase
+      for(let i=1; i<=totalMeja; i++){
+          let link = `${baseURL}?table=${i}`;
+          let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+          h += `<div style="text-align:center; border:1px solid #ddd; padding:5px; border-radius:5px; width:120px">
+            <img src="${qr}" width="100"><br><small>Meja ${i}</small>
+          </div>`;
+      }
+      h += `</div></div>`;
+
+      // Tombol Reset
+      h += `<div class="card" style="border:1px solid red; background:#fff5f5">
+         <h3>⚠️ Reset Data</h3>
+         <button class="btn btn-red" onclick="resetData()">HAPUS SEMUA DATA TRANSAKSI</button>
+      </div>`;
+      
       el.innerHTML = h;
   }
 
   // --- ACTIONS ---
   window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
+  
   window.tambahMenu = async () => {
       let n = document.getElementById("newMenuName").value;
       let p = document.getElementById("newMenuPrice").value;
-      let k = document.getElementById("newMenuCat").value; // Ambil Kategori
-
+      let k = document.getElementById("newMenuCat").value;
       if(n && p) { 
-          // Simpan field 'kategori' ke database
-          await addDoc(collection(db,"menus"), {
-              nama: n, 
-              harga: Number(p), 
-              kategori: k 
-          }); 
+          await addDoc(collection(db,"menus"), { nama: n, harga: Number(p), kategori: k }); 
           alert("Menu tersimpan!"); 
-      } else {
-          alert("Data belum lengkap!");
-      }
+      } else { alert("Data belum lengkap!"); }
   };
+  
   window.terimaBayar = async (id) => {
       if(!confirm("Konfirmasi pembayaran diterima?")) return;
       await updateDoc(doc(db,"pesanan",id), { status: "Diproses" });
   };
+  
   window.hapusMenu = async (id) => {
       if(!confirm("Yakin hapus menu ini?")) return;
       await deleteDoc(doc(db, "menus", id));
-      // Karena pakai onSnapshot realtime, tampilan akan update sendiri
   };
+
+  // FUNGSI UPDATE MEJA
+  window.updateTotalMeja = async () => {
+      const jml = document.getElementById("inputTotalMeja").value;
+      if(jml && jml > 0){
+          // Simpan ke document 'settings/toko'
+          await setDoc(doc(db, "settings", "toko"), { totalMeja: Number(jml) });
+          alert("Jumlah meja berhasil diupdate jadi " + jml);
+      } else {
+          alert("Masukkan angka yang valid");
+      }
+  };
+  
   window.resetData = async () => {
       if(prompt("Ketik 'HAPUS' untuk menghapus semua data transaksi:") !== "HAPUS") return;
       pesananList.forEach(async (p) => await deleteDoc(doc(db,"pesanan",p.id)));
@@ -278,7 +316,4 @@ function renderKasir(el){
 
 </script>
 </body>
-
 </html>
-
-
