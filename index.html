@@ -17,70 +17,97 @@
   .btn-success{background:var(--success);color:#fff}
   .menu-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #eee}
   textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:10px}
+  
+  /* Modal Style */
+  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; display:none; justify-content:center; align-items:center; }
+  .modal-content { background:#fff; padding:20px; border-radius:12px; width:90%; max-width:400px; text-align:center; animation: popUp 0.3s ease; }
+  @keyframes popUp { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
 </style>
 </head>
 <body>
 
 <header>Selamat Datang 👋</header>
-<div class="container" id="app">Memuat Menu...</div>
+<div class="container" id="app">
+    <div style="text-align:center; padding:50px; color:#888">
+        Memuat Sistem...<br>
+        <small>(Jika lama, cek koneksi internet atau refresh)</small>
+    </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // -----------------------------------------------------------
+  // PENTING: PASTE CONFIG FIREBASE KAMU DI SINI
+  // (Harus sama persis dengan yang ada di staff.html)
+  // -----------------------------------------------------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
+    authDomain: "pemesanan-restoran.firebaseapp.com",
+    projectId: "pemesanan-restoran",
+    storageBucket: "pemesanan-restoran.firebasestorage.app",
+    messagingSenderId: "257315829382",
+    appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
+    measurementId: "G-PPE58FRCLL"
+  };
+  // -----------------------------------------------------------
 
- const firebaseConfig = {
-  apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
-  authDomain: "pemesanan-restoran.firebaseapp.com",
-  projectId: "pemesanan-restoran",
-  storageBucket: "pemesanan-restoran.firebasestorage.app",
-  messagingSenderId: "257315829382",
-  appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
-  measurementId: "G-PPE58FRCLL"
-};
-  
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
   let menus = [];
   let cart = [];
   let myOrders = []; 
-
-  onSnapshot(collection(db, "pesanan"), (snapshot) => {
-    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    
-   
-        myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
-    }
-    
-    render(); 
-  });
+  // Cek nomor meja dari URL (?table=1) atau Memory Browser
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
 
-  // 1. Cek Meja dulu
-  if(!meja){
-    meja = prompt("Silakan masukkan Nomor Meja Anda:");
-    if(meja) {
-        sessionStorage.setItem("meja", meja);
-        location.reload(); // Refresh biar bersih
-    } else {
-        document.getElementById("app").innerHTML = "<div class='card' style='text-align:center'>Harap refresh dan masukkan nomor meja.</div>";
-    }
-  }
-
-  // 2. Ambil Menu Realtime
+  // --- 1. LISTENER MENU (Realtime) ---
   onSnapshot(collection(db, "menus"), (snapshot) => {
     menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Urutkan menu A-Z
     menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
   });
 
-  // 3. Render Tampilan
+  // --- 2. LISTENER PESANAN (Realtime Tracking) ---
+  onSnapshot(collection(db, "pesanan"), (snapshot) => {
+    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Ambil pesanan milik meja ini yang belum selesai
+    if(meja){
+        myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
+    }
+    render();
+  });
+
+  // --- 3. FUNGSI RENDER TAMPILAN ---
   window.render = () => {
-    if(!meja) return;
-    let html = `<div class="card"><h3>🍽️ Menu (Meja ${meja})</h3><small style="color:gray; cursor:pointer" onclick="gantiMeja()">[Ganti Nomor Meja]</small>`;
-    
+    // DIAGNOSA: Jika config salah / belum konek
+    if(!menus) return;
+
+    // A. JIKA MEJA BELUM DIPILIH -> Tampilkan Tombol Input
+    if(!meja){
+        document.getElementById("app").innerHTML = `
+            <div class="card" style="text-align:center">
+                <h3>🪑 Pilih Meja</h3>
+                <p>Silakan masukkan nomor meja Anda untuk mulai memesan.</p>
+                <button class="btn btn-primary" onclick="setMejaManual()">Input Nomor Meja</button>
+            </div>`;
+        return;
+    }
+
+    // B. JIKA SUDAH ADA MEJA -> Tampilkan Menu
+    let html = `<div class="card">
+        <h3>🍽️ Menu (Meja ${meja})</h3>
+        <small style="color:gray; cursor:pointer" onclick="gantiMeja()">[Ganti Nomor Meja]</small>
+    `;
+
+    // Cek jika menu kosong (mungkin database kosong)
+    if(menus.length === 0){
+        html += `<p style="text-align:center; padding:20px"><i>Belum ada menu tersedia.</i></p>`;
+    }
+
     menus.forEach(m => {
       html += `
         <div class="menu-item">
@@ -90,8 +117,9 @@
     });
     html += `</div>`; 
 
-    if(typeof myOrders !== 'undefined' && myOrders.length > 0) {
-        html += `<div class="card" style="background:#f0f8ff; border:1px solid #3498db; margin-top:15px">
+    // C. BAGIAN STATUS PESANAN (TRACKING)
+    if(myOrders.length > 0) {
+        html += `<div class="card" style="background:#f0f8ff; border:1px solid #3498db">
             <h3>📢 Status Pesanan</h3>`;
             
         myOrders.forEach(p => {
@@ -99,19 +127,18 @@
             let warna = "#333";
             let bgWarna = "#fff";
 
-            // Logika Warna Status
             if(p.status === "Menunggu Pembayaran") {
                 statusText = "⏳ Menunggu Pembayaran (Ke Kasir)";
-                warna = "#d35400"; // Orange tua
-                bgWarna = "#fff3cd"; // Kuning muda
+                warna = "#d35400"; // Orange
+                bgWarna = "#fff3cd";
             } else if (p.status === "Diproses") {
                 statusText = "🔥 Sedang Dimasak";
                 warna = "#2980b9"; // Biru
-                bgWarna = "#dff9fb"; // Biru muda
+                bgWarna = "#dff9fb";
             } else if (p.status === "Siap") {
                 statusText = "✅ Makanan Siap!";
                 warna = "#27ae60"; // Hijau
-                bgWarna = "#d4edda"; // Hijau muda
+                bgWarna = "#d4edda";
             }
 
             html += `
@@ -128,33 +155,19 @@
         html += `</div>`;
     }
 
+    // D. BAGIAN KERANJANG
     html += `<div class="card" id="cartArea" style="margin-top:15px">Keranjang Kosong</div>`;
     
     html += `<div class="card">
-        <textarea id="catatan" placeholder="Catatan (opsional, misal: Jangan pedas)"></textarea>
-        <button class="btn btn-primary" onclick="checkout()">Kirim Pesanan 🚀</button>
-    </div>`;
-
-    // Render HTML ke layar
-    document.getElementById("app").innerHTML = html;
-    
-    // Panggil fungsi renderCart biar keranjang tetap muncul
-    renderCart();
-  };
-    // Area Keranjang
-    html += `<div class="card" id="cartArea">Keranjang Kosong</div>`;
-    
-    // Area Pesan
-    html += `<div class="card">
-        <textarea id="catatan" placeholder="Catatan (opsional, misal: Jangan pedas)"></textarea>
+        <textarea id="catatan" placeholder="Catatan (opsional)..."></textarea>
         <button class="btn btn-primary" onclick="checkout()">Kirim Pesanan 🚀</button>
     </div>`;
 
     document.getElementById("app").innerHTML = html;
-    renderCart();
+    renderCart(); // Update tampilan cart
   };
 
-  // Fungsi Cart
+  // --- LOGIKA KERANJANG ---
   window.addToCart = (id, nama, harga) => {
     const exist = cart.find(c => c.id === id);
     if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1});
@@ -165,21 +178,26 @@
     const item = cart.find(c => c.id === id);
     if(item.qty > 1) item.qty--; else cart = cart.filter(c => c.id !== id);
     renderCart();
-  }
+  };
 
   window.renderCart = () => {
     const el = document.getElementById("cartArea");
-    if(!cart.length) { el.innerHTML="<i>Keranjang belanja Anda kosong.</i>"; return; }
+    if(!el) return;
+    
+    if(!cart.length) { 
+        el.innerHTML = `<div style="text-align:center; color:#999">Keranjang masih kosong</div>`; 
+        return; 
+    }
     
     let html = `<b>Keranjang Anda:</b><hr style="border:0; border-top:1px solid #eee">`;
     let total = 0;
     cart.forEach(c => {
         total += c.harga * c.qty;
-        html += `<div style="display:flex; justify-content:space-between; margin:8px 0">
-            <span>${c.nama} x${c.qty}</span>
+        html += `<div style="display:flex; justify-content:space-between; margin:8px 0; align-items:center">
+            <span>${c.nama} <small>x${c.qty}</small></span>
             <span>
                 Rp ${(c.harga*c.qty).toLocaleString()} 
-                <button class="btn" style="background:#eee; padding:2px 8px; margin-left:5px" onclick="hapusDariCart('${c.id}')">-</button>
+                <button class="btn btn-danger" style="padding:2px 8px; font-size:12px; margin-left:5px" onclick="hapusDariCart('${c.id}')">-</button>
             </span>
         </div>`;
     });
@@ -187,9 +205,10 @@
     el.innerHTML = html;
   };
 
+  // --- LOGIKA CHECKOUT (PESAN) ---
   window.checkout = async () => {
     if(!cart.length) return alert("Pilih menu dulu ya!");
-    if(!confirm("Kirim pesanan? Mohon segera lakukan pembayaran di Kasir setelah ini.")) return;
+    if(!confirm("Kirim pesanan? Mohon segera lakukan pembayaran di Kasir.")) return;
     
     const catatan = document.getElementById("catatan").value;
     const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
@@ -200,24 +219,32 @@
         items: cart, 
         catatan, 
         total, 
-        // UBAH DISINI: Status awal bukan 'Diproses', tapi 'Menunggu Pembayaran'
-        status: "Menunggu Pembayaran",
+        status: "Menunggu Pembayaran", // Status Awal
         createdAt: serverTimestamp(), 
         tanggalString: new Date().toLocaleString("id-ID")
       });
-      
-      alert("Pesanan Terkirim! Silakan menuju KASIR untuk pembayaran.");
+      alert("Pesanan Terkirim! Silakan menuju KASIR.");
       cart = []; 
-      // Kita panggil render biar keranjang kosong
       render();
     } catch(e){ alert("Gagal: " + e.message); }
   };
+
+  // --- FITUR GANTI MEJA ---
+  window.setMejaManual = () => {
+      const input = prompt("Masukkan Nomor Meja:");
+      if(input) {
+          sessionStorage.setItem("meja", input);
+          location.reload();
+      }
+  };
+
   window.gantiMeja = () => {
-      sessionStorage.removeItem("meja");
-      location.reload();
+      if(confirm("Ganti nomor meja?")) {
+          sessionStorage.removeItem("meja");
+          location.reload();
+      }
   };
 
 </script>
 </body>
 </html>
-
