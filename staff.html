@@ -43,7 +43,6 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  // Perhatikan: saya menambah 'setDoc' di sini
   import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -102,8 +101,7 @@
           menus = snap.docs.map(d => ({id:d.id, ...d.data()}));
           refreshCurrentView();
       });
-      // 3. Config Meja (Fitur Baru)
-      // Kita simpan di collection 'settings', dokumen bernama 'toko'
+      // 3. Config Meja
       onSnapshot(doc(db, "settings", "toko"), (docSnap) => {
           if (docSnap.exists()) {
               totalMeja = docSnap.data().totalMeja || 5;
@@ -190,16 +188,24 @@
       el.innerHTML = h;
   }
 
-  // 3. ADMIN (DENGAN MANAJEMEN MEJA)
- function renderAdmin(el){
-      // ... (Bagian Dashboard Analitik - Tetap Sama) ...
+  // 3. ADMIN (FULL: DASHBOARD + MENU + SETTING MEJA + QR)
+  function renderAdmin(el){
+      // A. DASHBOARD (INI YANG TADI HILANG)
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
       
-      let h = `<div class="card"><h3>📊 Dashboard</h3> ... (Kode Dashboard) ... </div>`; 
-      // (Saya singkat dashboardnya, pakai kode dashboard kamu yang terakhir ya)
+      let h = `<div class="card"><h3>📊 Dashboard Owner</h3>
+        <div style="display:flex; gap:10px; margin-bottom:10px">
+            <div style="flex:1; background:#3498db; color:#fff; padding:15px; border-radius:8px; text-align:center">
+                <small>Omset</small><br><b style="font-size:1.2em">Rp ${totalUang.toLocaleString()}</b>
+            </div>
+            <div style="flex:1; background:#2ecc71; color:#fff; padding:15px; border-radius:8px; text-align:center">
+                <small>Transaksi</small><br><b style="font-size:1.2em">${totalTransaksi}</b>
+            </div>
+        </div>
+      </div>`;
 
-      // --- MANAJEMEN MENU ---
+      // B. MANAJEMEN MENU
       h += `<div class="card">
         <h3>🍔 Manajemen Menu</h3>
         
@@ -236,8 +242,35 @@
         </div>
       </div>`;
 
-      // ... (Bagian QR Code & Reset Data - Tetap Sama) ...
-      h += `<div class="card"><h3>🖨️ Cetak QR</h3> ... </div>`; 
+      // C. SETUP JUMLAH MEJA (INI YANG TADI HILANG)
+      h += `<div class="card">
+          <h3>🪑 Pengaturan Meja</h3>
+          <p>Total meja di restoran saat ini:</p>
+          <div style="display:flex; gap:10px">
+              <input type="number" id="inputTotalMeja" value="${totalMeja}" style="margin:0">
+              <button class="btn btn-green" style="margin:0" onclick="updateTotalMeja()">Simpan</button>
+          </div>
+      </div>`;
+
+      // D. QR CODE (INI YANG TADI HILANG)
+      let baseURL = window.location.href.replace("staff.html", "index.html");
+      h += `<div class="card"><h3>🖨️ Cetak QR (${totalMeja} Meja)</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:10px">`;
+      
+      for(let i=1; i<=totalMeja; i++){
+          let link = `${baseURL}?table=${i}`;
+          let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+          h += `<div style="text-align:center; border:1px solid #ddd; padding:5px; border-radius:5px; width:120px">
+            <img src="${qr}" width="100"><br><small>Meja ${i}</small>
+          </div>`;
+      }
+      h += `</div></div>`;
+
+      // E. TOMBOL RESET
+      h += `<div class="card" style="border:1px solid red; background:#fff5f5">
+         <h3>⚠️ Reset Data</h3>
+         <button class="btn btn-red" onclick="resetData()">HAPUS SEMUA DATA TRANSAKSI</button>
+      </div>`;
 
       el.innerHTML = h;
       
@@ -248,6 +281,8 @@
       }
   }
 
+  // --- ACTIONS ---
+
   window.cariAdminDOM = (val) => {
       adminKeyword = val.toLowerCase();
       const items = document.querySelectorAll(".admin-search-item");
@@ -256,13 +291,7 @@
           el.style.display = nama.includes(adminKeyword) ? "flex" : "none";
       });
   }
-  // --- FUNGSI SEARCH ADMIN ---
-  window.cariMenuAdmin = (val) => {
-      adminKeyword = val;
-      // Perbarui tampilan admin tanpa mengubah tab
-      renderFitur('admin'); 
-  }
-  // --- ACTIONS ---
+
   window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
   
   window.tambahMenu = async () => {
@@ -285,11 +314,9 @@
       await deleteDoc(doc(db, "menus", id));
   };
 
-  // FUNGSI UPDATE MEJA
   window.updateTotalMeja = async () => {
       const jml = document.getElementById("inputTotalMeja").value;
       if(jml && jml > 0){
-          // Simpan ke document 'settings/toko'
           await setDoc(doc(db, "settings", "toko"), { totalMeja: Number(jml) });
           alert("Jumlah meja berhasil diupdate jadi " + jml);
       } else {
@@ -306,5 +333,3 @@
 </script>
 </body>
 </html>
-
-
