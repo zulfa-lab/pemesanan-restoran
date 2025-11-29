@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sistem Staff Resto</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Style mirip tapi lebih padat untuk admin */
+  :root{ --primary:#2c3e50; --acc:#3498db; --bg:#ecf0f1; }
+  body{ font-family:'Poppins',sans-serif; background:var(--bg); margin:0; padding:20px; }
+  .card{ background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:15px; }
+  .btn{ padding:10px 15px; border:none; border-radius:5px; cursor:pointer; color:#fff; font-weight:600; margin:5px; }
+  .btn-blue{ background:var(--acc); } .btn-green{ background:#27ae60; } .btn-red{ background:#c0392b; }
+  .login-box{ max-width:400px; margin:50px auto; text-align:center; }
+  input{ padding:10px; width:100%; margin:10px 0; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; }
+  .hidden{ display:none; }
+  .menu-item{ padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+</style>
+</head>
+<body>
+
+<div id="loginPage" class="login-box card">
+    <h2>🔒 Staff Area</h2>
+    <p>Masukkan Password Sistem</p>
+    <input type="password" id="passInput" placeholder="Password...">
+    <button class="btn btn-blue" style="width:100%" onclick="cekLogin()">Masuk</button>
+</div>
+
+<div id="dashboardPage" class="container hidden" style="max-width:800px; margin:0 auto">
+    <div class="card" style="text-align:center">
+        <h2>Halo, Staff! 👋</h2>
+        <p>Silakan pilih mode kerja:</p>
+        <button class="btn btn-green" onclick="bukaHalaman('kasir')">🖥️ Kasir</button>
+        <button class="btn btn-blue" onclick="bukaHalaman('dapur')">👨‍🍳 Dapur</button>
+        <button class="btn btn-red" onclick="bukaHalaman('admin')">⚙️ Admin (QR)</button>
+    </div>
+</div>
+
+<div id="fiturPage" class="container hidden" style="max-width:800px; margin:0 auto">
+    <button class="btn btn-red" onclick="kembaliKeDash()">⬅ Kembali ke Menu Utama</button>
+    <div id="kontenFitur"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
+  authDomain: "pemesanan-restoran.firebaseapp.com",
+  projectId: "pemesanan-restoran",
+  storageBucket: "pemesanan-restoran.firebasestorage.app",
+  messagingSenderId: "257315829382",
+  appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
+  measurementId: "G-PPE58FRCLL"
+};
+  const appFirebase = initializeApp(firebaseConfig);
+  const db = getFirestore(appFirebase);
+
+  // Global Data
+  let pesananList = [];
+  let menus = [];
+
+  // --- LOGIKA LOGIN ---
+  window.cekLogin = () => {
+      const p = document.getElementById("passInput").value;
+      // PASSWORDNYA "admin123"
+      if(p === "admin123"){ 
+          document.getElementById("loginPage").classList.add("hidden");
+          document.getElementById("dashboardPage").classList.remove("hidden");
+          initListeners(); // Mulai tarik data
+      } else {
+          alert("Password salah!");
+      }
+  };
+
+  // --- NAVIGASI ---
+  window.kembaliKeDash = () => {
+      document.getElementById("fiturPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.remove("hidden");
+  };
+
+  window.bukaHalaman = (role) => {
+      document.getElementById("dashboardPage").classList.add("hidden");
+      document.getElementById("fiturPage").classList.remove("hidden");
+      renderFitur(role);
+  };
+
+  // --- DATA LISTENER ---
+  function initListeners(){
+      // Pesanan
+      onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
+          pesananList = snap.docs.map(d => ({id:d.id, ...d.data()}));
+          // Refresh tampilan jika sedang buka halaman tertentu
+          const mode = document.getElementById("kontenFitur").getAttribute("data-mode");
+          if(mode) renderFitur(mode);
+      });
+      // Menu
+      onSnapshot(collection(db, "menus"), (snap)=>{
+          menus = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      });
+  }
+
+  // --- RENDER UTAMA ---
+  function renderFitur(role){
+      const el = document.getElementById("kontenFitur");
+      el.setAttribute("data-mode", role); // nandain lagi buka apa
+      
+      if(role === 'dapur') renderDapur(el);
+      else if(role === 'kasir') renderKasir(el);
+      else if(role === 'admin') renderAdmin(el);
+  }
+
+  // 1. DAPUR
+  function renderDapur(el){
+      let h = `<div class="card"><h3>Antrian Dapur</h3>`;
+      const tasks = pesananList.filter(p => p.status !== 'Selesai');
+      if(!tasks.length) h += "<i>Tidak ada pesanan aktif.</i>";
+      
+      tasks.forEach(p => {
+          let color = p.status === 'Siap' ? '#d4edda' : '#fff';
+          h += `<div style="background:${color}; border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:5px">
+             <b>Meja ${p.meja}</b> (${p.status})
+             <ul>${p.items.map(i=>`<li>${i.nama} x${i.qty}</li>`).join('')}</ul>
+             ${p.catatan ? `<small style="color:red">Note: ${p.catatan}</small><br>` : ''}
+             <div style="margin-top:5px">
+                ${p.status==='Diproses' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Siap')">✅ Siap Saji</button>` : ''}
+                ${p.status==='Siap' ? `<button class="btn btn-green" onclick="ubahStatus('${p.id}','Selesai')">🍽️ Diambil</button>` : ''}
+             </div>
+          </div>`;
+      });
+      h += `</div>`;
+      el.innerHTML = h;
+  }
+
+  // 2. KASIR
+  function renderKasir(el){
+      let h = `<div class="card"><h3>Kasir & Menu</h3>`;
+      
+      // Tambah Menu
+      h += `<div style="background:#eee; padding:10px; border-radius:5px; margin-bottom:10px">
+        <b>+ Menu Baru:</b> 
+        <input id="newMenuName" placeholder="Nama" style="width:40%"> 
+        <input id="newMenuPrice" placeholder="Harga" type="number" style="width:30%">
+        <button class="btn btn-blue" onclick="tambahMenu()">Simpan</button>
+      </div>`;
+
+      h += `<h4>Riwayat Transaksi</h4>`;
+      pesananList.forEach(p => {
+          h += `<div class="menu-item">
+            <div><b>Meja ${p.meja}</b> - Rp ${p.total.toLocaleString()}<br><small>${p.status} • ${p.tanggalString}</small></div>
+            ${p.status !== 'Selesai' ? `<button class="btn btn-green" onclick="ubahStatus('${p.id}','Selesai')">Lunas</button>` : '✅'}
+          </div>`;
+      });
+      h += `</div>`;
+      el.innerHTML = h;
+  }
+
+  // 3. ADMIN (QR)
+  function renderAdmin(el){
+      // Link index.html (asumsi satu folder)
+      // Kita hapus 'staff.html' dari URL dan ganti jadi 'index.html'
+      let baseURL = window.location.href.replace("staff.html", "index.html");
+      
+      let h = `<div class="card"><h3>QR Code Meja</h3><div style="display:flex; flex-wrap:wrap; gap:10px">`;
+      for(let i=1; i<=5; i++){
+          let link = `${baseURL}?table=${i}`;
+          let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+          h += `<div style="text-align:center; border:1px solid #ddd; padding:10px; border-radius:5px">
+            <img src="${qr}"><br><b>Meja ${i}</b>
+          </div>`;
+      }
+      h += `</div></div>`;
+      el.innerHTML = h;
+  }
+
+  // --- ACTIONS ---
+  window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
+  window.tambahMenu = async () => {
+      let n = document.getElementById("newMenuName").value;
+      let p = document.getElementById("newMenuPrice").value;
+      if(n && p) { await addDoc(collection(db,"menus"),{nama:n, harga:Number(p)}); alert("Menu tersimpan"); }
+  };
+
+</script>
+</body>
+</html>
