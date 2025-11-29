@@ -2,47 +2,142 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <title>Menu Restoran</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --primary:#c0392b; --success:#27ae60; --card-bg:#fff; --page-bg:#fafafa; }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Poppins',sans-serif;background:var(--page-bg);color:#333}
-  header{background:var(--primary);color:#fff;padding:15px;text-align:center;font-weight:600;font-size:1.1rem;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-  .container{max-width:600px;margin:20px auto;padding:0 16px}
-  .card{background:var(--card-bg);border-radius:12px;padding:15px;box-shadow:0 4px 10px rgba(0,0,0,.05);margin-bottom:15px}
+  :root { 
+    --primary: #ff4757; /* Merah Modern */
+    --dark: #2f3542; 
+    --grey: #f1f2f6; 
+    --white: #ffffff;
+    --shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+    --radius: 16px;
+  }
   
-  .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600;font-size:14px}
-  .btn-primary{background:var(--primary);color:#fff;width:100%;padding:12px;font-size:16px}
-  .btn-success{background:var(--success);color:#fff}
-  .btn-danger{background:#e74c3c;color:#fff}
-  
-  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #eee}
-  textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:10px}
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: 'Poppins', sans-serif; background: #fafafa; color: var(--dark); padding-bottom: 100px; }
 
-  /* --- STYLE BARU: KATEGORI --- */
-  .cat-wrapper { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
+  /* --- HEADER & HERO --- */
+  header {
+    background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .header-content { display: flex; justify-content: space-between; align-items: center; }
+  .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  
+  .hero-text { padding: 20px; }
+  .hero-text h1 { margin: 0; font-size: 24px; color: var(--dark); }
+  .hero-text p { margin: 5px 0 0; color: #747d8c; font-size: 14px; }
+
+  /* --- SEARCH & CATEGORY --- */
+  .search-container { padding: 0 20px; margin-bottom: 15px; }
+  .search-input {
+    width: 100%; padding: 14px 20px; border-radius: 12px; border: none;
+    background: var(--grey); font-family: inherit; font-size: 14px; outline: none;
+    transition: 0.3s;
+  }
+  .search-input:focus { background: #fff; box-shadow: 0 0 0 2px var(--primary); }
+
+  .cat-wrapper { 
+    display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 15px 20px; 
+    scrollbar-width: none; 
+  }
   .cat-wrapper::-webkit-scrollbar { display: none; }
   .cat-btn { 
-    background: #fff; border: 1px solid #eee; padding: 8px 20px; border-radius: 50px; 
-    white-space: nowrap; cursor: pointer; font-size: 14px; color: #555;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background: var(--white); border: 1px solid #eee; padding: 10px 20px; border-radius: 25px; 
+    white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 500; color: #57606f;
+    transition: 0.2s; flex-shrink: 0;
   }
   .cat-btn.active { 
-    background: var(--primary); color: #fff; border-color: var(--primary);
-    transform: scale(1.05); box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3); font-weight: 600;
+    background: var(--primary); color: #fff; border-color: var(--primary); 
+    box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
   }
+
+  /* --- MENU GRID --- */
+  .menu-grid { padding: 0 20px; display: grid; gap: 15px; }
+  .menu-card {
+    background: var(--white); padding: 15px; border-radius: var(--radius);
+    box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center;
+    transition: 0.2s; border: 1px solid transparent;
+  }
+  .menu-card:active { transform: scale(0.98); }
+  .menu-info b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .menu-info small { color: var(--primary); font-weight: 600; font-size: 14px; }
+  .add-btn {
+    background: var(--grey); color: var(--dark); border: none; width: 35px; height: 35px;
+    border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .add-btn:hover { background: var(--primary); color: #fff; }
+
+  /* --- FLOATING STATUS & CART --- */
+  .floating-bar {
+    position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 900;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  
+  .status-card {
+    background: var(--dark); color: #fff; padding: 15px; border-radius: 12px;
+    font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideUp 0.3s ease;
+  }
+  
+  .cart-btn-floating {
+    background: var(--primary); color: #fff; padding: 16px; border-radius: 14px;
+    font-weight: 600; text-align: center; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* --- MODAL KERANJANG --- */
+  .modal-overlay {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.6); z-index:1000; align-items: flex-end;
+  }
+  .modal-sheet {
+      background:#fff; width:100%; border-radius: 24px 24px 0 0; padding:25px;
+      animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+  /* --- TOAST NOTIFICATION --- */
+  #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; width: 90%; max-width: 400px; }
+  .toast {
+      background: rgba(44, 62, 80, 0.95); color: #fff; padding: 12px 20px; border-radius: 50px;
+      margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: fadeDown 0.4s ease; backdrop-filter: blur(4px);
+  }
+  @keyframes fadeDown { from{opacity:0; transform:translateY(-20px)} to{opacity:1; transform:translateY(0)} }
 </style>
 </head>
 <body>
 
-<header>Selamat Datang 👋</header>
-<div class="container" id="app">
-    <div style="text-align:center; padding:50px; color:#888">
-        Memuat Sistem...<br>
-        <small>(Pastikan Config Firebase sudah benar)</small>
+<div id="toast-container"></div>
+
+<header>
+  <div class="header-content">
+    <div style="font-weight:700; font-size:18px; color:var(--primary)">RestoApp</div>
+    <div id="mejaInfo" class="table-badge" onclick="gantiMeja()">Meja -</div>
+  </div>
+</header>
+
+<div id="app">
+    <div style="display:flex; justify-content:center; align-items:center; height:80vh; flex-direction:column; color:#aaa">
+        <div style="font-size:40px; margin-bottom:10px">🍔</div>
+        <div>Memuat Menu...</div>
+    </div>
+</div>
+
+<div class="floating-bar" id="floatingArea"></div>
+
+<div id="cartModal" class="modal-overlay" onclick="closeCart(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0">Keranjang Saya</h3>
+            <span onclick="toggleCart()" style="cursor:pointer; font-size:20px">✕</span>
+        </div>
+        <div id="cartList"></div>
+        <textarea id="catatan" class="search-input" style="background:#fff; border:1px solid #eee; margin-top:15px" placeholder="Tambah catatan (opsional)..."></textarea>
+        <button onclick="checkout()" style="width:100%; background:var(--primary); color:#fff; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:16px">Pesan Sekarang</button>
     </div>
 </div>
 
@@ -51,9 +146,7 @@
   import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // =========================================================
-  // JANGAN LUPA: PASTE CONFIG FIREBASE KAMU DI BAWAH INI
-  // =========================================================
+  // --- CONFIG FIREBASE ---
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
     authDomain: "pemesanan-restoran.firebaseapp.com",
@@ -63,179 +156,266 @@
     appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
     measurementId: "G-PPE58FRCLL"
   };
-  // =========================================================
 
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  // --- VARIABLES ---
+  // --- STATE ---
   let menus = [];
   let cart = [];
-  let myOrders = [];
-  let keyword = "";
+  let myOrders = []; 
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
-  let kategoriAktif = "Semua"; // Default Kategori
+  let kategoriAktif = "Semua";
+  let keyword = "";
+  
+  // Untuk melacak status terakhir agar tidak spam notifikasi
+  let lastStatusMap = {}; 
 
-  // --- LISTENER 1: MENU ---
+  // --- 1. LISTENER MENU ---
   onSnapshot(collection(db, "menus"), (snapshot) => {
     menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Urutkan A-Z
     menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
   });
 
-  // --- LISTENER 2: PESANAN ---
+  // --- 2. LISTENER PESANAN & NOTIFIKASI ---
   onSnapshot(collection(db, "pesanan"), (snapshot) => {
+    // Logic untuk Notifikasi Realtime
+    snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        const orderId = change.doc.id;
+        
+        // Hanya proses pesanan meja ini
+        if (meja && data.meja == meja) {
+            if (change.type === "modified") {
+                // Cek perubahan status
+                if (data.status === "Diproses" && lastStatusMap[orderId] !== "Diproses") {
+                    showToast(`👨‍🍳 Pesanan sedang dimasak!`);
+                    playSound();
+                }
+                if (data.status === "Siap" && lastStatusMap[orderId] !== "Siap") {
+                    showToast(`✅ Makanan SIAP diambil!`);
+                    playSound();
+                }
+            }
+            // Update map status terakhir
+            lastStatusMap[orderId] = data.status;
+        }
+    });
+
+    // Update data untuk render UI
     const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     if(meja){
-        // Ambil pesanan meja ini yang belum selesai
         myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     }
     render();
+    renderFloatingBar();
   });
 
-  // --- FUNGSI RENDER UTAMA ---
- window.render = () => {
+  // --- FUNGSI TOAST NOTIFICATION ---
+  function showToast(msg) {
+      const container = document.getElementById("toast-container");
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.innerHTML = `<span>🔔</span> ${msg}`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4000); // Hilang setelah 4 detik
+  }
+
+  function playSound() {
+      // Suara notifikasi sederhana
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(e => console.log("Audio play blocked"));
+  }
+
+  // --- RENDER UTAMA ---
+  window.render = () => {
+    // Update Badge Meja
+    const mejaEl = document.getElementById("mejaInfo");
+    if(meja) mejaEl.innerText = `Meja ${meja}`;
+    else mejaEl.innerText = "Pilih Meja";
+
     if(!meja){
-        // ... (Kode input meja manual, copy dari sebelumnya tidak berubah) ...
-        document.getElementById("app").innerHTML = `<div class="card" style="text-align:center"><h3>🪑 Pilih Meja</h3><button class="btn btn-primary" onclick="setMejaManual()">Input Meja</button></div>`;
+        document.getElementById("app").innerHTML = `
+            <div style="text-align:center; padding:50px 20px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/1255/1255953.png" width="100" style="margin-bottom:20px; opacity:0.5">
+                <h3>Selamat Datang!</h3>
+                <p style="color:#777">Silakan pilih nomor meja untuk mulai memesan makanan.</p>
+                <button onclick="setMejaManual()" style="background:var(--primary); color:#fff; border:0; padding:12px 30px; border-radius:30px; font-weight:600; margin-top:20px">Pilih Meja</button>
+            </div>`;
         return;
     }
 
-    let html = `<div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-             <h3>🍽️ Menu (Meja ${meja})</h3>
+    let html = `
+        <div class="hero-text">
+            <h1>Mau makan apa?</h1>
+            <p>Temukan rasa favoritmu hari ini.</p>
         </div>
 
-        <input type="text" id="searchInput" placeholder="🔍 Cari makanan..." 
-               onkeyup="cariMenuDOM(this.value)"
-               style="width:100%; padding:12px; border-radius:30px; border:1px solid #ddd; background:#f9f9f9; margin-bottom:15px">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Cari bakso, es teh..." 
+            value="${keyword}" oninput="handleSearch(this.value)">
+        </div>
 
         <div class="cat-wrapper">
-            <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">🔥 Semua</button>
-            <button class="cat-btn ${kategoriAktif=='Makanan'?'active':''}" onclick="gantiKategori('Makanan')">🍛 Makanan</button>
-            <button class="cat-btn ${kategoriAktif=='Minuman'?'active':''}" onclick="gantiKategori('Minuman')">🥤 Minuman</button>
-            <button class="cat-btn ${kategoriAktif=='Cemilan'?'active':''}" onclick="gantiKategori('Cemilan')">🍟 Cemilan</button>
+            <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">Semua</button>
+            <button class="cat-btn ${kategoriAktif=='Makanan'?'active':''}" onclick="gantiKategori('Makanan')">Makanan</button>
+            <button class="cat-btn ${kategoriAktif=='Minuman'?'active':''}" onclick="gantiKategori('Minuman')">Minuman</button>
+            <button class="cat-btn ${kategoriAktif=='Cemilan'?'active':''}" onclick="gantiKategori('Cemilan')">Cemilan</button>
         </div>
+
+        <div class="menu-grid">
     `;
 
-    // 1. Filter Kategori Saja (Search tidak memfilter array di sini)
-    let filteredMenus = kategoriAktif === 'Semua' ? menus : menus.filter(m => m.kategori === kategoriAktif);
+    // Filter Logic
+    let filtered = menus.filter(m => {
+        let matchCat = (kategoriAktif === 'Semua') || (m.kategori === kategoriAktif);
+        let matchName = m.nama.toLowerCase().includes(keyword.toLowerCase());
+        return matchCat && matchName;
+    });
 
-    if(filteredMenus.length === 0){
-        html += `<div style="text-align:center; padding:30px; color:#999"><i>Kosong...</i></div>`;
-    }
+    if(filtered.length === 0) html += `<div style="text-align:center; grid-column:1/-1; padding:40px; color:#999">Tidak ditemukan</div>`;
 
-    // 2. Loop Menu Items
-    // TAMBAHAN PENTING: class "search-item" dan data-name untuk target pencarian
-    filteredMenus.forEach(m => {
-      html += `
-        <div class="menu-item search-item" data-name="${m.nama.toLowerCase()}">
-          <div>
-            <b>${m.nama}</b><br>
-            <small>Rp ${Number(m.harga).toLocaleString()}</small>
-          </div>
-          <button class="btn btn-success" style="border-radius:20px" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+ Add</button>
+    filtered.forEach(m => {
+        html += `
+        <div class="menu-card">
+            <div class="menu-info">
+                <b>${m.nama}</b>
+                <small>Rp ${m.harga.toLocaleString()}</small>
+            </div>
+            <button class="add-btn" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+</button>
         </div>`;
     });
-    html += `</div>`; 
 
-    // (Bagian Status Pesanan & Keranjang TETAP SAMA seperti sebelumnya, copy paste aja)
-    // ... Copy bagian Status Pesanan ...
-    if(myOrders.length > 0) {
-        html += `<div class="card" style="margin-top:15px; background:#f0f8ff; border:1px solid #3498db"><h3>📢 Status</h3>`;
-        myOrders.forEach(p => {
-             html += `<div style="padding:10px; border-left:4px solid blue; background:#fff; margin-bottom:5px"><b>${p.status}</b><br>Rp ${p.total.toLocaleString()}</div>`;
-        });
-        html += `</div>`;
-    }
-    // ... Copy bagian Keranjang ...
-    html += `<div class="card" id="cartArea" style="margin-top:15px"></div>`;
-    html += `<div class="card"><textarea id="catatan" placeholder="Catatan..."></textarea><button class="btn btn-primary" onclick="checkout()">Pesan</button></div>`;
-
+    html += `</div>`; // End Grid
     document.getElementById("app").innerHTML = html;
-    
-    // Restore Search Value (Supaya teks tidak hilang saat ada update keranjang)
-    if(document.getElementById("searchInput")) {
-        document.getElementById("searchInput").value = keyword; 
-        cariMenuDOM(keyword); // Terapkan filter ulang
-    }
-    renderCart();
   };
 
-  window.cariMenuDOM = (val) => {
-      keyword = val.toLowerCase();
-      const items = document.querySelectorAll(".search-item");
-      
-      items.forEach(el => {
-          const namaMenu = el.getAttribute("data-name");
-          if(namaMenu.includes(keyword)){
-              el.style.display = "flex"; // Tampilkan
-          } else {
-              el.style.display = "none"; // Sembunyikan
-          }
-      });
-  }
-  // --- LOGIC LAINNYA ---
-  
-  window.gantiKategori = (kat) => {
-      kategoriAktif = kat;
-      render();
+  // --- FLOATING BAR (STATUS + CART) ---
+  function renderFloatingBar() {
+      const el = document.getElementById("floatingArea");
+      let html = "";
+
+      // 1. Status Pesanan (Tracking)
+      if(myOrders.length > 0) {
+          myOrders.forEach(p => {
+              let icon = "⏳";
+              let msg = "Menunggu Pembayaran";
+              let color = "#f39c12"; // Orange
+
+              if(p.status === "Diproses") { icon = "👨‍🍳"; msg = "Sedang Dimasak"; color = "#3498db"; }
+              if(p.status === "Siap") { icon = "✅"; msg = "Siap Diambil!"; color = "#2ecc71"; }
+
+              html += `
+              <div class="status-card" style="border-left: 5px solid ${color}">
+                  <div style="display:flex; align-items:center; gap:10px">
+                    <span style="font-size:20px">${icon}</span>
+                    <div>
+                        <div style="font-weight:700">${msg}</div>
+                        <div style="opacity:0.8; font-size:11px">${p.items.length} Menu • Rp ${p.total.toLocaleString()}</div>
+                    </div>
+                  </div>
+              </div>`;
+          });
+      }
+
+      // 2. Tombol Keranjang (Jika ada isi)
+      if(cart.length > 0) {
+          const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
+          const count = cart.reduce((s,i)=>s+i.qty,0);
+          html += `
+          <div class="cart-btn-floating" onclick="toggleCart()">
+              <div style="display:flex; align-items:center; gap:10px">
+                <span style="background:rgba(255,255,255,0.3); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px">${count}</span>
+                <span>Keranjang</span>
+              </div>
+              <span>Rp ${total.toLocaleString()}</span>
+          </div>`;
+      }
+
+      el.innerHTML = html;
   }
 
+  // --- CART & MODAL LOGIC ---
+  window.toggleCart = () => {
+      const modal = document.getElementById("cartModal");
+      if(modal.style.display === "flex") {
+          modal.style.display = "none";
+      } else {
+          modal.style.display = "flex";
+          renderCartList();
+      }
+  };
+  window.closeCart = (e) => { if(e.target.id === 'cartModal') toggleCart(); };
+
+  function renderCartList() {
+      const el = document.getElementById("cartList");
+      if(cart.length === 0) { el.innerHTML = "<p>Kosong</p>"; return; }
+      
+      let html = "";
+      cart.forEach(c => {
+          html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f5f5f5; padding-bottom:10px">
+              <div>
+                  <div style="font-weight:600">${c.nama}</div>
+                  <div style="color:var(--primary); font-size:14px">Rp ${(c.harga*c.qty).toLocaleString()}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; background:#f5f5f5; padding:5px 10px; border-radius:20px">
+                  <span onclick="updateQty('${c.id}', -1)" style="cursor:pointer; font-weight:bold; color:#555">-</span>
+                  <span style="font-weight:600; font-size:14px; min-width:15px; text-align:center">${c.qty}</span>
+                  <span onclick="updateQty('${c.id}', 1)" style="cursor:pointer; font-weight:bold; color:var(--primary)">+</span>
+              </div>
+          </div>`;
+      });
+      el.innerHTML = html;
+  }
+
+  // --- ACTIONS ---
   window.addToCart = (id, nama, harga) => {
     const exist = cart.find(c => c.id === id);
     if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1});
-    renderCart();
+    renderFloatingBar(); // Update floating bar
+    showToast(`"${nama}" masuk keranjang`); // Feedback instan
   };
 
-  window.hapusDariCart = (id) => {
-    const item = cart.find(c => c.id === id);
-    if(item.qty > 1) item.qty--; else cart = cart.filter(c => c.id !== id);
-    renderCart();
-  };
-
-  window.renderCart = () => {
-    const el = document.getElementById("cartArea");
-    if(!el) return;
-    if(!cart.length) { el.innerHTML = `<div style="text-align:center; color:#999">Keranjang Kosong</div>`; return; }
-    
-    let html = `<b>Keranjang:</b><hr style="border:0; border-top:1px solid #eee">`;
-    let total = 0;
-    cart.forEach(c => {
-        total += c.harga * c.qty;
-        html += `<div style="display:flex; justify-content:space-between; margin:8px 0; align-items:center">
-            <span>${c.nama} x${c.qty}</span>
-            <span>Rp ${(c.harga*c.qty).toLocaleString()} <button class="btn btn-danger" style="padding:2px 8px; font-size:10px" onclick="hapusDariCart('${c.id}')">X</button></span>
-        </div>`;
-    });
-    html += `<hr style="border:0; border-top:1px solid #eee"><div style="text-align:right; font-weight:bold">Total: Rp ${total.toLocaleString()}</div>`;
-    el.innerHTML = html;
+  window.updateQty = (id, delta) => {
+      const item = cart.find(c => c.id === id);
+      if(item) {
+          item.qty += delta;
+          if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
+          renderCartList();
+          renderFloatingBar();
+      }
   };
 
   window.checkout = async () => {
-    if(!cart.length) return alert("Keranjang kosong!");
-    if(!confirm("Lanjut pesan?")) return;
+    if(!cart.length) return;
+    if(!confirm("Kirim pesanan?")) return;
+    
     const catatan = document.getElementById("catatan").value;
     const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
+
     try {
       await addDoc(collection(db, "pesanan"), {
         meja, items: cart, catatan, total, status: "Menunggu Pembayaran",
         createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID")
       });
-      alert("Pesanan Terkirim! Mohon bayar di kasir.");
-      cart = []; render();
+      alert("Pesanan Terkirim! Mohon segera bayar di kasir.");
+      cart = []; toggleCart(); renderFloatingBar();
     } catch(e){ alert("Error: " + e.message); }
   };
 
+  // Helpers
+  window.handleSearch = (val) => { keyword = val; render(); };
+  window.gantiKategori = (kat) => { kategoriAktif = kat; render(); };
   window.setMejaManual = () => {
       const input = prompt("Nomor Meja:");
       if(input) { sessionStorage.setItem("meja", input); location.reload(); }
+  };
+  window.gantiMeja = () => {
+      if(confirm("Ganti nomor meja?")) { sessionStorage.removeItem("meja"); location.reload(); }
   };
 
 </script>
 </body>
 </html>
-
-
-
