@@ -21,7 +21,8 @@
   /* HEADER */
   header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
   .header-content { display: flex; justify-content: space-between; align-items: center; }
-  .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  /* Table Badge sekarang statis (cursor default) */
+  .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: default; }
   
   /* HERO & SEARCH */
   .hero-text { padding: 20px; }
@@ -41,7 +42,6 @@
   .menu-grid { padding: 0 20px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .menu-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; }
   .menu-card:active { transform: scale(0.98); }
-  /* Cursor Pointer pada gambar menandakan bisa diklik */
   .menu-img { width: 100%; height: 120px; object-fit: cover; background: #eee; cursor: zoom-in; }
   .menu-content { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
   .menu-info b { display: block; font-size: 14px; margin-bottom: 4px; line-height: 1.2; }
@@ -56,14 +56,8 @@
 
   /* MODALS GENERIC */
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-  
-  /* Bottom Sheet (Keranjang/Detail) */
   .modal-sheet { background:#fff; width:100%; border-radius: 24px 24px 0 0; padding:25px; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto; position: absolute; bottom: 0; }
-  
-  /* Center Popup (Alert/Confirm) */
   .modal-popup { background:#fff; width:85%; max-width:350px; border-radius: 20px; padding:25px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-  
-  /* Image Preview Modal */
   .modal-image-box { max-width: 90%; max-height: 80vh; position: relative; animation: zoomIn 0.3s ease; }
   .modal-image-box img { max-width: 100%; max-height: 80vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); object-fit: contain; }
   .close-img-btn { position: absolute; top: -40px; right: 0; color: #fff; font-size: 30px; cursor: pointer; background: rgba(0,0,0,0.5); width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding-bottom: 4px; }
@@ -77,7 +71,6 @@
   .toast { background: rgba(44, 62, 80, 0.95); color: #fff; padding: 12px 20px; border-radius: 50px; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: fadeDown 0.4s ease; }
   @keyframes fadeDown { from{opacity:0; transform:translateY(-20px)} to{opacity:1; transform:translateY(0)} }
   
-  /* CUSTOM BUTTONS & DETAILS */
   .btn-sys { padding: 12px; border-radius: 10px; border: 0; font-weight: 600; font-size: 14px; flex: 1; cursor: pointer; }
   .btn-sys-primary { background: var(--primary); color: #fff; }
   .btn-sys-ghost { background: #f1f2f6; color: #555; }
@@ -92,7 +85,7 @@
 <header>
   <div class="header-content">
     <div style="font-weight:700; font-size:18px; color:var(--primary)">RestoApp</div>
-    <div id="mejaInfo" class="table-badge" onclick="gantiMeja()">Meja -</div>
+    <div id="mejaInfo" class="table-badge">Meja -</div>
   </div>
 </header>
 
@@ -105,51 +98,15 @@
 
 <div class="floating-bar" id="floatingArea"></div>
 
-<div id="cartModal" class="modal-overlay" onclick="closeCart(event)" style="align-items: flex-end;">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-            <h3 style="margin:0">Keranjang Saya</h3>
-            <span onclick="toggleCart()" style="cursor:pointer; font-size:20px">✕</span>
-        </div>
-        <div id="cartList"></div>
-        <textarea id="catatan" class="search-input" style="background:#fff; border:1px solid #eee; margin-top:15px" placeholder="Tambah catatan (opsional)..."></textarea>
-        <button onclick="checkout()" style="width:100%; background:var(--primary); color:#fff; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:16px">Pesan Sekarang</button>
-    </div>
-</div>
-
-<div id="orderDetailModal" class="modal-overlay" onclick="closeDetail(event)" style="align-items: flex-end;">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-            <h3 style="margin:0">Rincian Pesanan</h3>
-            <span onclick="closeDetail()" style="cursor:pointer; font-size:20px">✕</span>
-        </div>
-        <div id="orderDetailContent"></div>
-        <button onclick="closeDetail()" style="width:100%; background:#eee; color:#333; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:14px">Tutup</button>
-    </div>
-</div>
-
-<div id="sysModal" class="modal-overlay">
-    <div class="modal-popup" onclick="event.stopPropagation()">
-        <h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3>
-        <p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p>
-        <input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center">
-        <div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div>
-    </div>
-</div>
-
-<div id="imgModal" class="modal-overlay" onclick="closeImage()">
-    <div class="modal-image-box" onclick="event.stopPropagation()">
-        <div class="close-img-btn" onclick="closeImage()">✕</div>
-        <img id="previewImage" src="">
-    </div>
-</div>
+<div id="cartModal" class="modal-overlay" onclick="closeCart(event)" style="align-items: flex-end;"><div class="modal-sheet" onclick="event.stopPropagation()"><div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3 style="margin:0">Keranjang Saya</h3><span onclick="toggleCart()" style="cursor:pointer; font-size:20px">✕</span></div><div id="cartList"></div><textarea id="catatan" class="search-input" style="background:#fff; border:1px solid #eee; margin-top:15px" placeholder="Tambah catatan (opsional)..."></textarea><button onclick="checkout()" style="width:100%; background:var(--primary); color:#fff; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:16px">Pesan Sekarang</button></div></div>
+<div id="orderDetailModal" class="modal-overlay" onclick="closeDetail(event)" style="align-items: flex-end;"><div class="modal-sheet" onclick="event.stopPropagation()"><div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3 style="margin:0">Rincian Pesanan</h3><span onclick="closeDetail()" style="cursor:pointer; font-size:20px">✕</span></div><div id="orderDetailContent"></div><button onclick="closeDetail()" style="width:100%; background:#eee; color:#333; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:14px">Tutup</button></div></div>
+<div id="sysModal" class="modal-overlay"><div class="modal-popup" onclick="event.stopPropagation()"><h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3><p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p><input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center"><div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div></div></div>
+<div id="imgModal" class="modal-overlay" onclick="closeImage()"><div class="modal-image-box" onclick="event.stopPropagation()"><div class="close-img-btn" onclick="closeImage()">✕</div><img id="previewImage" src=""></div></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // --- FIREBASE CONFIG ---
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
     authDomain: "pemesanan-restoran.firebaseapp.com",
@@ -164,60 +121,20 @@
   const db = getFirestore(appFirebase);
 
   // --- STATE ---
-  let menus = [];
-  let cart = [];
-  let myOrders = []; 
+  let menus = []; let cart = []; let myOrders = []; 
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
-  let kategoriAktif = "Semua";
-  let lastStatusMap = {}; 
+  let kategoriAktif = "Semua"; let lastStatusMap = {}; 
 
-  // --- HELPERS SYSTEM MODALS ---
-  window.appAlert = (msg) => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Info";
-          document.getElementById('sysMsg').innerText = msg;
-          document.getElementById('sysInput').style.display = 'none';
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`;
-          document.getElementById('sysModal').style.display = 'flex';
-          document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
-      });
-  };
-
-  window.appConfirm = (msg) => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Konfirmasi";
-          document.getElementById('sysMsg').innerText = msg;
-          document.getElementById('sysInput').style.display = 'none';
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`;
-          document.getElementById('sysModal').style.display = 'flex';
-          document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); };
-          document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
-      });
-  };
-
-  window.appPrompt = (msg, placeholder="...") => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Input";
-          document.getElementById('sysMsg').innerText = msg;
-          const inp = document.getElementById('sysInput');
-          inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.focus();
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`;
-          document.getElementById('sysModal').style.display = 'flex';
-          document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); };
-      });
-  };
+  // --- HELPERS ---
+  window.appAlert = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Info"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
+  window.appConfirm = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Konfirmasi"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); }; document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
+  window.appPrompt = (msg, placeholder="...") => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Input"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.focus(); document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
 
   // --- LISTENERS ---
-  onSnapshot(collection(db, "menus"), (snapshot) => {
-    menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    menus.sort((a,b) => a.nama.localeCompare(b.nama));
-    render(); 
-  });
-
+  onSnapshot(collection(db, "menus"), (snapshot) => { menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); menus.sort((a,b) => a.nama.localeCompare(b.nama)); render(); });
   onSnapshot(collection(db, "pesanan"), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        const orderId = change.doc.id;
+        const data = change.doc.data(); const orderId = change.doc.id;
         if (meja && data.meja == meja) {
             if (change.type === "modified") {
                 if (data.status === "Diproses" && lastStatusMap[orderId] !== "Diproses") { showToast(`👨‍🍳 Pesanan sedang dimasak!`); playSound(); }
@@ -231,15 +148,8 @@
     renderFloatingBar();
   });
 
-  function showToast(msg) {
-      const container = document.getElementById("toast-container");
-      const el = document.createElement("div"); el.className = "toast"; el.innerHTML = `<span>🔔</span> ${msg}`;
-      container.appendChild(el); setTimeout(() => el.remove(), 4000);
-  }
-  function playSound() {
-      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-      audio.play().catch(e => console.log("Audio blocked"));
-  }
+  function showToast(msg) { const container = document.getElementById("toast-container"); const el = document.createElement("div"); el.className = "toast"; el.innerHTML = `<span>🔔</span> ${msg}`; container.appendChild(el); setTimeout(() => el.remove(), 4000); }
+  function playSound() { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); audio.play().catch(e => console.log("Audio blocked")); }
 
   // --- RENDER ---
   window.render = () => {
@@ -252,7 +162,7 @@
     }
 
     let html = `
-        <div class="hero-text"><h1>Mau pesan apa?</h1><p>Terserahh pokoknya yang penting pesann.</p></div>
+        <div class="hero-text"><h1>Mau makan apa?</h1><p>Temukan rasa favoritmu hari ini.</p></div>
         <div class="search-container"><input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari bakso, es teh..." onkeyup="realtimeSearch(this.value)"></div>
         <div class="cat-wrapper">
             <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">Semua</button>
@@ -266,7 +176,6 @@
     if(filtered.length === 0) html += `<div style="text-align:center; grid-column:1/-1; padding:40px; color:#999">Tidak ditemukan</div>`;
 
     filtered.forEach(m => {
-        // IMAGE CLICK EVENT ADDED HERE
         let imgSrc = m.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
         html += `
         <div class="menu-card searchable-item" data-name="${m.nama.toLowerCase()}">
@@ -277,23 +186,16 @@
             </div>
         </div>`;
     });
-
-    html += `</div>`; 
-    document.getElementById("app").innerHTML = html;
+    html += `</div>`; document.getElementById("app").innerHTML = html;
     
     const searchEl = document.getElementById("searchInput");
     if(searchEl && window.currentSearchTerm) { searchEl.value = window.currentSearchTerm; realtimeSearch(window.currentSearchTerm); }
   };
 
-  // --- IMAGE PREVIEW FUNCTIONS ---
-  window.openImage = (url) => {
-      document.getElementById('previewImage').src = url;
-      document.getElementById('imgModal').style.display = 'flex';
-  }
-  window.closeImage = () => {
-      document.getElementById('imgModal').style.display = 'none';
-  }
-
+  // --- ACTIONS ---
+  window.openImage = (url) => { document.getElementById('previewImage').src = url; document.getElementById('imgModal').style.display = 'flex'; }
+  window.closeImage = () => { document.getElementById('imgModal').style.display = 'none'; }
+  
   window.realtimeSearch = (val) => {
       window.currentSearchTerm = val.toLowerCase();
       document.querySelectorAll(".searchable-item").forEach(el => {
@@ -327,7 +229,6 @@
       container.innerHTML = html; document.getElementById("orderDetailModal").style.display = "flex";
   };
   window.closeDetail = (e) => { if(!e || e.target.id === 'orderDetailModal' || !e.target.id) document.getElementById("orderDetailModal").style.display = "none"; };
-  
   window.toggleCart = () => { const modal = document.getElementById("cartModal"); if(modal.style.display === "flex") modal.style.display = "none"; else { modal.style.display = "flex"; renderCartList(); } };
   window.closeCart = (e) => { if(e.target.id === 'cartModal') toggleCart(); };
 
@@ -340,12 +241,12 @@
   window.updateQty = (id, delta) => { const item = cart.find(c => c.id === id); if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(c => c.id !== id); renderCartList(); renderFloatingBar(); } };
   
   window.checkout = async () => { if(!cart.length) return; if(!await appConfirm("Kirim pesanan?")) return; const catatan = document.getElementById("catatan").value; const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0); try { await addDoc(collection(db, "pesanan"), { meja, items: cart, catatan, total, status: "Menunggu Pembayaran", createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID") }); await appAlert("Pesanan Terkirim! Mohon segera bayar di kasir."); cart = []; toggleCart(); renderFloatingBar(); } catch(e){ await appAlert("Error: " + e.message); } };
-  
   window.gantiKategori = (kat) => { kategoriAktif = kat; render(); };
   window.setMejaManual = async () => { const input = await appPrompt("Nomor Meja:", "Contoh: 5"); if(input) { sessionStorage.setItem("meja", input); location.reload(); } };
-  window.gantiMeja = async () => { if(await appConfirm("Ganti nomor meja?")) { sessionStorage.removeItem("meja"); location.reload(); } };
-
+  
+  // FITUR GANTI MEJA DIHAPUS (Hanya Reset Total)
+  // Tidak ada tombol ganti meja di UI, jadi function ini tidak dipanggil
+  
 </script>
 </body>
 </html>
-
