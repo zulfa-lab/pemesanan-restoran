@@ -144,16 +144,19 @@
   }
 
   // 2. KASIR
- function renderKasir(el){
+function renderKasir(el){
       let h = `<div class="card"><h3>🖥️ Kasir (Pembayaran)</h3>`;
       
-      // Filter pesanan yang statusnya belum selesai
-      // Urutkan: Yang "Menunggu Pembayaran" taruh paling atas
+      // (Bagian Tambah Menu SUDAH DIHAPUS dari sini)
+
+      // --- LOGIKA LIST TRANSAKSI ---
       let activeOrders = pesananList.filter(p => p.status !== 'Selesai');
+      
+      if(activeOrders.length === 0) h += `<i>Belum ada pesanan aktif.</i>`;
       
       activeOrders.forEach(p => {
           let isUnpaid = p.status === "Menunggu Pembayaran";
-          let bg = isUnpaid ? "#fff3cd" : "#fff"; // Kuning kalau belum bayar
+          let bg = isUnpaid ? "#fff3cd" : "#fff"; 
           let border = isUnpaid ? "2px solid #ffc107" : "1px solid #ddd";
 
           h += `<div class="menu-item" style="display:block; background:${bg}; border:${border}; border-radius:8px; margin-bottom:10px">
@@ -166,39 +169,77 @@
                     <b>Rp ${p.total.toLocaleString()}</b>
                 </div>
             </div>
-            
-            <hr style="opacity:0.3">
-            <small>${p.items.map(i=>i.nama).join(', ')}</small>
-            
+            <hr style="opacity:0.3; margin:8px 0">
+            <small style="color:#555">${p.items.map(i=>i.nama + " x" + i.qty).join(', ')}</small>
             <div style="margin-top:10px; text-align:right">
                 ${isUnpaid 
-                  ? `<button class="btn btn-green" onclick="terimaBayar('${p.id}')">💰 Terima Pembayaran & Kirim ke Dapur</button>` 
-                  : `<button class="btn" disabled>Sudah Lunas</button>`
+                  ? `<button class="btn btn-green" onclick="terimaBayar('${p.id}')">💰 Terima Bayar & Masak</button>` 
+                  : `<button class="btn" style="background:#ddd; color:#666; cursor:default">Sudah Lunas</button>`
                 }
-                ${p.status === 'Siap' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Selesai')">Pesanan Selesai</button>` : ''}
+                ${p.status === 'Siap' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Selesai')">✅ Pesanan Selesai</button>` : ''}
             </div>
           </div>`;
       });
       h += `</div>`;
       el.innerHTML = h;
   }
-
   
-  // 3. ADMIN (QR)
+  // 3. ADMIN (LENGKAP: DASHBOARD + MANAJEMEN MENU + QR)
   function renderAdmin(el){
-      // Link index.html (asumsi satu folder)
-      // Kita hapus 'staff.html' dari URL dan ganti jadi 'index.html'
+      // --- A. DASHBOARD ANALITIK ---
+      let totalUang = 0;
+      let totalTransaksi = 0;
+      pesananList.forEach(p => {
+          if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; }
+      });
+
+      let h = `<div class="card"><h3>📊 Dashboard Owner</h3>
+      <div style="display:flex; gap:10px; margin-bottom:10px">
+          <div style="flex:1; background:#3498db; color:#fff; padding:15px; border-radius:8px; text-align:center">
+             <small>Omset</small><br><b style="font-size:1.2em">Rp ${totalUang.toLocaleString()}</b>
+          </div>
+          <div style="flex:1; background:#2ecc71; color:#fff; padding:15px; border-radius:8px; text-align:center">
+             <small>Transaksi</small><br><b style="font-size:1.2em">${totalTransaksi}</b>
+          </div>
+      </div></div>`;
+
+      // --- B. MANAJEMEN MENU (PINDAHAN DARI KASIR) ---
+      h += `<div class="card">
+        <h3>🍔 Manajemen Menu</h3>
+        
+        <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd">
+            <b>+ Tambah Menu Baru:</b>
+            <div style="display:flex; gap:5px; margin-top:5px">
+                <input id="newMenuName" placeholder="Nama Makanan..." style="flex:2; margin:0"> 
+                <input id="newMenuPrice" type="number" placeholder="Harga" style="flex:1; margin:0">
+                <button class="btn btn-blue" style="margin:0" onclick="tambahMenu()">Simpan</button>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; max-height:200px; overflow-y:auto">
+            ${menus.map(m => `
+                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee">
+                    <span>${m.nama} - <b>Rp ${m.harga.toLocaleString()}</b></span>
+                    <button class="btn btn-red" style="padding:2px 8px; font-size:12px; margin:0" onclick="hapusMenu('${m.id}')">Hapus</button>
+                </div>
+            `).join('')}
+        </div>
+      </div>`;
+
+      // --- C. QR CODE ---
       let baseURL = window.location.href.replace("staff.html", "index.html");
-      
-      let h = `<div class="card"><h3>QR Code Meja</h3><div style="display:flex; flex-wrap:wrap; gap:10px">`;
+      h += `<div class="card"><h3>🖨️ Cetak QR Meja</h3><div style="display:flex; flex-wrap:wrap; gap:10px">`;
       for(let i=1; i<=5; i++){
           let link = `${baseURL}?table=${i}`;
           let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
-          h += `<div style="text-align:center; border:1px solid #ddd; padding:10px; border-radius:5px">
-            <img src="${qr}"><br><b>Meja ${i}</b>
+          h += `<div style="text-align:center; border:1px solid #ddd; padding:5px; border-radius:5px">
+            <img src="${qr}" width="80"><br><small>Meja ${i}</small>
           </div>`;
       }
       h += `</div></div>`;
+      
+      h += `<div class="card" style="border:1px solid red"><button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ RESET SEMUA DATA</button></div>`;
+
       el.innerHTML = h;
   }
 
@@ -213,8 +254,19 @@
       if(!confirm("Konfirmasi pembayaran diterima?")) return;
       await updateDoc(doc(db,"pesanan",id), { status: "Diproses" });
   };
+  window.hapusMenu = async (id) => {
+      if(!confirm("Yakin hapus menu ini?")) return;
+      await deleteDoc(doc(db, "menus", id));
+      // Karena pakai onSnapshot realtime, tampilan akan update sendiri
+  };
+  window.resetData = async () => {
+      if(prompt("Ketik 'HAPUS' untuk menghapus semua data transaksi:") !== "HAPUS") return;
+      pesananList.forEach(async (p) => await deleteDoc(doc(db,"pesanan",p.id)));
+      alert("Data transaksi dibersihkan.");
+  }
 
 </script>
 </body>
 
 </html>
+
