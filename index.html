@@ -105,7 +105,6 @@
     let html = `<div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
              <h3>🍽️ Menu (Meja ${meja})</h3>
-             <small onclick="gantiMeja()" style="color:red; cursor:pointer">[Ganti]</small>
         </div>
 
         <input type="text" id="searchInput" placeholder="🔍 Cari makanan..." 
@@ -233,12 +232,10 @@
       const input = prompt("Nomor Meja:");
       if(input) { sessionStorage.setItem("meja", input); location.reload(); }
   };
-  window.gantiMeja = () => {
-      sessionStorage.removeItem("meja"); location.reload();
-  };
 
 </script>
 </body>
 </html>
+
 
 
