@@ -71,7 +71,8 @@
   // --- VARIABLES ---
   let menus = [];
   let cart = [];
-  let myOrders = []; 
+  let myOrders = [];
+  let keyword = "";
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
   let kategoriAktif = "Semua"; // Default Kategori
 
@@ -94,7 +95,7 @@
   });
 
   // --- FUNGSI RENDER UTAMA ---
-  window.render = () => {
+ window.render = () => {
     // 1. Cek Meja
     if(!meja){
         document.getElementById("app").innerHTML = `
@@ -106,12 +107,17 @@
         return;
     }
 
-    // 2. Header Menu & Kategori
+    // 2. Header & Search Bar
     let html = `<div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
              <h3>🍽️ Menu (Meja ${meja})</h3>
              <small onclick="gantiMeja()" style="color:red; cursor:pointer">[Ganti]</small>
         </div>
+
+        <input type="text" placeholder="🔍 Cari makanan..." 
+               value="${keyword}" 
+               oninput="cariMenu(this.value)" 
+               style="width:100%; padding:12px; border-radius:30px; border:1px solid #ddd; background:#f9f9f9; margin-bottom:15px">
 
         <div class="cat-wrapper">
             <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">🔥 Semua</button>
@@ -121,12 +127,19 @@
         </div>
     `;
 
-    // 3. Filter Menu Sesuai Kategori
-    let filteredMenus = kategoriAktif === 'Semua' ? menus : menus.filter(m => m.kategori === kategoriAktif);
+    // 3. LOGIKA FILTER GANDA (Kategori + Search)
+    let filteredMenus = menus.filter(m => {
+        // Cek Kategori
+        let matchCat = (kategoriAktif === 'Semua') || (m.kategori === kategoriAktif);
+        // Cek Nama (Case Insensitive)
+        let matchName = m.nama.toLowerCase().includes(keyword.toLowerCase());
+        
+        return matchCat && matchName;
+    });
 
     if(filteredMenus.length === 0){
         html += `<div style="text-align:center; padding:30px; color:#999">
-            <i>Belum ada menu di kategori <b>${kategoriAktif}</b></i>
+            <i>Menu tidak ditemukan...</i>
         </div>`;
     }
 
@@ -160,6 +173,11 @@
         html += `</div>`;
     }
 
+   window.cariMenu = (val) => {
+      keyword = val;
+      render(); // Render ulang saat mengetik
+  }
+
     // 6. Keranjang & Checkout
     html += `<div class="card" id="cartArea" style="margin-top:15px"></div>`;
     html += `<div class="card">
@@ -170,7 +188,6 @@
     document.getElementById("app").innerHTML = html;
     renderCart();
   };
-
   // --- LOGIC LAINNYA ---
   
   window.gantiKategori = (kat) => {
@@ -234,3 +251,4 @@
 </script>
 </body>
 </html>
+
