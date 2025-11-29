@@ -3,355 +3,150 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sistem Restoran Online (Firebase)</title>
+<title>Menu Restoran</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  /* ===== STYLE SAMA SEPERTI SEBELUMNYA ===== */
-  :root{ --primary:#c0392b; --success:#27ae60; --info:#2980b9; --warning:#e67e22; --danger:#e74c3c; --card-bg:#fff; --page-bg:#fafafa; }
+  :root{ --primary:#c0392b; --success:#27ae60; --card-bg:#fff; --page-bg:#fafafa; }
   *{box-sizing:border-box}
-  body{margin:0;font-family:'Poppins',sans-serif;background:var(--page-bg);color:#222}
-  header{background:var(--primary);color:#fff;padding:14px;text-align:center;font-weight:600;font-size:1.2rem}
-  .container{max-width:960px;margin:20px auto;padding:0 16px}
-  .card{background:var(--card-bg);border-radius:10px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:18px}
-  .btn{padding:8px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:600;margin-right:5px;margin-bottom:5px}
-  .btn-primary{background:var(--primary);color:#fff}
+  body{margin:0;font-family:'Poppins',sans-serif;background:var(--page-bg);color:#333}
+  header{background:var(--primary);color:#fff;padding:15px;text-align:center;font-weight:600;font-size:1.1rem;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+  .container{max-width:600px;margin:20px auto;padding:0 16px}
+  .card{background:var(--card-bg);border-radius:12px;padding:15px;box-shadow:0 4px 10px rgba(0,0,0,.05);margin-bottom:15px}
+  .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600;font-size:14px}
+  .btn-primary{background:var(--primary);color:#fff;width:100%;padding:12px;font-size:16px}
   .btn-success{background:var(--success);color:#fff}
-  .btn-info{background:var(--info);color:#fff}
-  .btn-warning{background:var(--warning);color:#fff}
-  .btn-danger{background:var(--danger);color:#fff}
-  input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:8px 0}
-  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed #eee}
-  .flex{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-  small.muted{color:#666}
-  .qr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
-  .center{text-align:center}
-  #loader{position:fixed;top:0;left:0;width:100%;height:3px;background:var(--warning);animation:load 2s infinite;display:none;z-index:9999}
-  @keyframes load{0%{width:0}50%{width:70%}100%{width:100%}}
+  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #eee}
+  textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:10px}
 </style>
 </head>
 <body>
 
-<div id="loader"></div>
-<header>Resto Final Project (Online)</header>
-<div class="container" id="app">Loading Sistem...</div>
+<header>Selamat Datang 👋</header>
+<div class="container" id="app">Memuat Menu...</div>
 
 <script type="module">
-  // 1. IMPORT LIBRARY FIREBASE (Langsung dari CDN)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } 
+  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // 2. CONFIG FIREBASE 
-  // --- GANTI BAGIAN INI DENGAN CONFIG KAMU DARI FIREBASE CONSOLE ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
-    authDomain: "pemesanan-restoran.firebaseapp.com",
-    projectId: "pemesanan-restoran",
-    storageBucket: "pemesanan-restoran.firebasestorage.app",
-    messagingSenderId: "257315829382",
-    appId: "1:257315829382:web:d457fd1cb09f3e1283c307"
-  };
-  // ------------------------------------------------------------------
 
-  // Init Firebase
+ const firebaseConfig = {
+  apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
+  authDomain: "pemesanan-restoran.firebaseapp.com",
+  projectId: "pemesanan-restoran",
+  storageBucket: "pemesanan-restoran.firebasestorage.app",
+  messagingSenderId: "257315829382",
+  appId: "1:257315829382:web:d457fd1cb09f3e1283c307",
+  measurementId: "G-PPE58FRCLL"
+};
+  
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  // Global State (Disinkronkan dengan Firebase)
   let menus = [];
-  let pesananList = [];
   let cart = [];
+  let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
 
-  // Loader UI
-  const loader = document.getElementById("loader");
-  function showLoad(){ loader.style.display="block"; }
-  function hideLoad(){ loader.style.display="none"; }
+  // 1. Cek Meja dulu
+  if(!meja){
+    meja = prompt("Silakan masukkan Nomor Meja Anda:");
+    if(meja) {
+        sessionStorage.setItem("meja", meja);
+        location.reload(); // Refresh biar bersih
+    } else {
+        document.getElementById("app").innerHTML = "<div class='card' style='text-align:center'>Harap refresh dan masukkan nomor meja.</div>";
+    }
+  }
 
-  // 3. LISTENER REALTIME (Jantungnya Aplikasi Ini)
-  // Listener Menu
+  // 2. Ambil Menu Realtime
   onSnapshot(collection(db, "menus"), (snapshot) => {
     menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Sort menu by nama biar rapi
     menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
   });
 
-  // Listener Pesanan (Realtime order masuk!)
-  const qPesanan = query(collection(db, "pesanan"), orderBy("createdAt", "desc"));
-  onSnapshot(qPesanan, (snapshot) => {
-    pesananList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
-  });
-
-  /* ========== FUNGSI CRUD DATABASE ========== */
-  
-  // Tambah Pesanan ke Firestore
-  window.kirimPesananDB = async (nomorMeja, items, catatan, total) => {
-    showLoad();
-    try {
-      await addDoc(collection(db, "pesanan"), {
-        meja: nomorMeja,
-        items: items,
-        catatan: catatan,
-        total: total,
-        status: "Diproses",
-        createdAt: serverTimestamp(), // Pakai waktu server
-        tanggalString: new Date().toLocaleString("id-ID")
-      });
-      alert("Pesanan Terkirim ke Dapur!");
-      cart = []; // Kosongkan cart lokal
-    } catch(e) { alert("Error: " + e.message); }
-    hideLoad();
-  };
-
-  // Update Status (Dapur/Kasir)
-  window.updateStatusDB = async (docId, statusBaru) => {
-    showLoad();
-    await updateDoc(doc(db, "pesanan", docId), { status: statusBaru });
-    hideLoad();
-  };
-
-  // Tambah Menu (Kasir)
-  window.tambahMenuDB = async (nama, harga) => {
-    showLoad();
-    await addDoc(collection(db, "menus"), { nama, harga: Number(harga) });
-    hideLoad();
-  };
-
-  // Hapus Menu
-  window.hapusMenuDB = async (docId) => {
-    if(!confirm("Hapus menu ini?")) return;
-    showLoad();
-    await deleteDoc(doc(db, "menus", docId));
-    hideLoad();
-  };
-  
-  // Hapus Pesanan (Opsional Admin)
-  window.hapusPesananDB = async (docId) => {
-    if(!confirm("Hapus data transaksi ini?")) return;
-    await deleteDoc(doc(db, "pesanan", docId));
-  }
-
-  /* ========== LOGIKA UI (DOM) ========== */
-  // Navigasi
-  window.setRole = (r) => { sessionStorage.setItem("role", r); render(); };
-  window.backHome = () => { sessionStorage.removeItem("role"); location.href = location.pathname; };
- window.backPrev = () => { backHome(); };
-
-  const app = document.getElementById("app");
-
-  function tombolKembali(){
-    return `<div style="margin-bottom:12px"><button class="btn btn-info" onclick="backPrev()">⬅ Kembali</button><button class="btn btn-warning" onclick="backHome()">🏠 Beranda</button></div>`;
-  }
-
-  /* --- RENDER UTAMA --- */
-  window.render = function() {
-    const role = sessionStorage.getItem("role");
-    if(!role) return pilihRole();
-    if(role === "pelanggan") return halamanPelanggan();
-    if(role === "kasir") return halamanKasir();
-    if(role === "dapur") return halamanDapur();
-    if(role === "admin") return halamanAdmin();
-  }
-
-  function pilihRole(){
-    app.innerHTML = `
-      <div class="card center">
-        <h2>Sistem Restoran (Online)</h2>
-        <p>Data tersimpan di Cloud Firebase. Realtime Sync.</p>
-        <div class="flex" style="justify-content:center; margin-top:20px">
-          <button class="btn btn-primary" onclick="setRole('pelanggan')">Pelanggan</button>
-          <button class="btn btn-info" onclick="setRole('kasir')">Kasir</button>
-          <button class="btn btn-warning" onclick="setRole('dapur')">Dapur</button>
-          <button class="btn btn-danger" onclick="setRole('admin')">Admin</button>
-        </div>
-        <p class="muted" style="margin-top:20px; font-size:12px">Hint: Buka tab browser baru untuk simulasi realtime.</p>
-      </div>
-    `;
-  }
-
-  /* --- PELANGGAN --- */
-  function halamanPelanggan(){
-    const tableQuery = new URLSearchParams(location.search).get("table");
-    // Kalau belum set meja, tanya dulu
-    if(!sessionStorage.getItem("meja") && !tableQuery){
-        let m = prompt("Masukkan Nomor Meja:");
-        if(!m) { backHome(); return; }
-        sessionStorage.setItem("meja", m);
-    }
-    const meja = tableQuery || sessionStorage.getItem("meja");
-
-    let html = `${tombolKembali()}<div class="card"><h2>Menu - Meja ${meja}</h2>`;
-    if(!menus.length) html += `<i>Memuat menu...</i>`;
+  // 3. Render Tampilan
+  window.render = () => {
+    if(!meja) return;
+    let html = `<div class="card"><h3>🍽️ Menu (Meja ${meja})</h3><small style="color:gray; cursor:pointer" onclick="gantiMeja()">[Ganti Nomor Meja]</small>`;
     
     menus.forEach(m => {
       html += `
         <div class="menu-item">
-          <div><b>${m.nama}</b><br><small class="muted">Rp ${Number(m.harga).toLocaleString()}</small></div>
-          <button class="btn btn-success" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">Tambah</button>
+          <div><b>${m.nama}</b><br><small>Rp ${Number(m.harga).toLocaleString()}</small></div>
+          <button class="btn btn-success" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+ Tambah</button>
         </div>`;
     });
-    
-    html += `<div style="margin-top:20px"><textarea id="catatan" placeholder="Catatan..."></textarea></div>`;
-    html += `<div style="margin-top:10px" id="cartArea"></div>`;
-    html += `<button class="btn btn-primary" style="width:100%; margin-top:10px" onclick="checkout('${meja}')">Pesan Sekarang</button>`;
     html += `</div>`;
-    app.innerHTML = html;
-    renderCart();
-  }
 
+    // Area Keranjang
+    html += `<div class="card" id="cartArea">Keranjang Kosong</div>`;
+    
+    // Area Pesan
+    html += `<div class="card">
+        <textarea id="catatan" placeholder="Catatan (opsional, misal: Jangan pedas)"></textarea>
+        <button class="btn btn-primary" onclick="checkout()">Kirim Pesanan 🚀</button>
+    </div>`;
+
+    document.getElementById("app").innerHTML = html;
+    renderCart();
+  };
+
+  // Fungsi Cart
   window.addToCart = (id, nama, harga) => {
     const exist = cart.find(c => c.id === id);
     if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1});
     renderCart();
   };
 
-  // --- GANTI BAGIAN INI ---
-
-  // Fungsi Hapus Item dari Cart (Baru)
   window.hapusDariCart = (id) => {
     const item = cart.find(c => c.id === id);
-    if(item.qty > 1) {
-      item.qty--; 
-    } else {
-      cart = cart.filter(c => c.id !== id);
-    }
+    if(item.qty > 1) item.qty--; else cart = cart.filter(c => c.id !== id);
     renderCart();
-  };
+  }
 
-  // Fungsi Render Cart yang LEBIH LENGKAP
   window.renderCart = () => {
     const el = document.getElementById("cartArea");
-    if(!el) return;
+    if(!cart.length) { el.innerHTML="<i>Keranjang belanja Anda kosong.</i>"; return; }
     
-    // Jika kosong
-    if(!cart.length) { 
-      el.innerHTML = `<div style="padding:10px; background:#eee; color:#666; border-radius:5px; text-align:center">Keranjang Masih Kosong</div>`; 
-      return; 
-    }
-
-    // Jika ada isi, tampilkan detailnya
-    let html = `<div style="background:#fff; border:1px solid #ddd; padding:10px; border-radius:8px">`;
-    html += `<b>Isi Keranjang:</b><br>`;
-    
+    let html = `<b>Keranjang Anda:</b><hr style="border:0; border-top:1px solid #eee">`;
     let total = 0;
-    cart.forEach(item => {
-      let subtotal = item.harga * item.qty;
-      total += subtotal;
-      html += `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-bottom:1px dashed #eee; padding-bottom:5px">
-          <div>
-            ${item.nama} <small>x${item.qty}</small><br>
-            <small class="muted">Rp ${subtotal.toLocaleString()}</small>
-          </div>
-          <div>
-            <button class="btn btn-danger" style="padding:2px 8px; font-size:12px" onclick="hapusDariCart('${item.id}')">-</button>
-            <button class="btn btn-success" style="padding:2px 8px; font-size:12px" onclick="addToCart('${item.id}', '${item.nama}', ${item.harga})">+</button>
-          </div>
-        </div>
-      `;
+    cart.forEach(c => {
+        total += c.harga * c.qty;
+        html += `<div style="display:flex; justify-content:space-between; margin:8px 0">
+            <span>${c.nama} x${c.qty}</span>
+            <span>
+                Rp ${(c.harga*c.qty).toLocaleString()} 
+                <button class="btn" style="background:#eee; padding:2px 8px; margin-left:5px" onclick="hapusDariCart('${c.id}')">-</button>
+            </span>
+        </div>`;
     });
-
-    html += `<div style="margin-top:10px; text-align:right; font-size:1.1rem">Total: <b>Rp ${total.toLocaleString()}</b></div>`;
-    html += `</div>`;
-    
+    html += `<hr style="border:0; border-top:1px solid #eee"><div style="text-align:right; font-weight:bold; font-size:1.1rem">Total: Rp ${total.toLocaleString()}</div>`;
     el.innerHTML = html;
   };
 
-  window.checkout = (meja) => {
-    if(!cart.length) return alert("Keranjang kosong");
+  window.checkout = async () => {
+    if(!cart.length) return alert("Pilih menu dulu ya!");
+    if(!confirm("Sudah yakin dengan pesanan ini?")) return;
+    
+    const catatan = document.getElementById("catatan").value;
     const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
-    const cat = document.getElementById("catatan").value;
-    // Kirim ke DB
-    kirimPesananDB(meja, cart, cat, total);
+
+    try {
+      await addDoc(collection(db, "pesanan"), {
+        meja: meja, items: cart, catatan, total, status: "Diproses",
+        createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID")
+      });
+      alert("Pesanan Berhasil! Mohon tunggu.");
+      cart = []; render();
+    } catch(e){ alert("Gagal: " + e.message); }
   };
 
-  /* --- DAPUR (REALTIME) --- */
-  function halamanDapur(){
-    let html = `${tombolKembali()}<div class="card"><h2>Dapur (Realtime)</h2>`;
-    // Filter yg belum selesai
-    const tasks = pesananList.filter(p => p.status !== "Selesai");
-    
-    if(!tasks.length) html += `<i>Tidak ada antrian masak.</i>`;
-    tasks.forEach(p => {
-      let bg = p.status === "Siap" ? "#dff0d8" : "#fff";
-      html += `
-        <div class="menu-item" style="background:${bg}; padding:10px; border-radius:5px; margin-bottom:5px; display:block">
-          <div style="display:flex; justify-content:space-between">
-            <b>Meja ${p.meja}</b> <span class="muted">${p.tanggalString}</span>
-          </div>
-          <ul style="margin:5px 0; padding-left:20px">
-            ${p.items.map(i=>`<li>${i.nama} x${i.qty}</li>`).join('')}
-          </ul>
-          ${p.catatan ? `<div style="color:red; font-size:12px">Note: ${p.catatan}</div>` : ''}
-          <div style="margin-top:10px; text-align:right">
-            <b>Status: ${p.status}</b><br>
-            ${p.status === 'Diproses' ? `<button class="btn btn-warning" onclick="updateStatusDB('${p.id}', 'Siap')">Masakan Siap</button>` : ''}
-            ${p.status === 'Siap' ? `<button class="btn btn-success" onclick="updateStatusDB('${p.id}', 'Selesai')">Diambil Pelayan</button>` : ''}
-          </div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-    app.innerHTML = html;
-  }
-
-  /* --- KASIR --- */
-  function halamanKasir(){
-    let html = `${tombolKembali()}<div class="card"><h2>Kasir & Menu</h2>`;
-    
-    // Form Menu
-    html += `<details><summary><b>+ Tambah Menu Baru</b></summary>
-      <div style="margin-top:10px; padding:10px; background:#eee; border-radius:5px">
-        <input id="nMenu" placeholder="Nama"><input id="hMenu" type="number" placeholder="Harga">
-        <button class="btn btn-primary" onclick="tambahMenuDB(document.getElementById('nMenu').value, document.getElementById('hMenu').value)">Simpan Menu</button>
-      </div>
-    </details>`;
-
-    // List Menu
-    html += `<div style="margin-top:10px"><b>Daftar Menu:</b><br>`;
-    menus.forEach(m => {
-        html += `<span style="display:inline-block; background:#eee; padding:5px 10px; margin:2px; border-radius:15px; font-size:12px">
-            ${m.nama} <span style="color:red; cursor:pointer" onclick="hapusMenuDB('${m.id}')">×</span></span>`;
-    });
-    html += `</div><hr>`;
-
-    // List Transaksi
-    html += `<h3>Riwayat Pesanan</h3>`;
-    pesananList.forEach(p => {
-        html += `<div class="menu-item">
-            <div>
-                <b>Meja ${p.meja}</b> (${p.status})<br>
-                Total: Rp ${p.total.toLocaleString()}
-            </div>
-            <div>
-                ${p.status !== 'Selesai' ? `<button class="btn btn-success" onclick="updateStatusDB('${p.id}', 'Selesai')">Lunas</button>` : '<span class="muted">✔ Lunas</span>'}
-            </div>
-        </div>`;
-    });
-
-    html += `</div>`;
-    app.innerHTML = html;
-  }
-
-  /* --- ADMIN (QR) --- */
-  function halamanAdmin(){
-    const url = location.origin + location.pathname; // URL saat ini
-    let html = `${tombolKembali()}<div class="card"><h2>QR Code Meja</h2><div class="qr-grid">`;
-    for(let i=1; i<=6; i++){
-        let link = `${url}?table=${i}`;
-        let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
-        html += `<div class="center card"><b>Meja ${i}</b><br><img src="${qr}"><br><small style="font-size:10px">${link}</small></div>`;
-    }
-    html += `</div></div>`;
-    app.innerHTML = html;
-  }
-
-  // First run
-  render();
+  window.gantiMeja = () => {
+      sessionStorage.removeItem("meja");
+      location.reload();
+  };
 
 </script>
 </body>
-
 </html>
-
