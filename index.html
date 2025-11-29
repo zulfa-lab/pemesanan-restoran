@@ -136,7 +136,7 @@
   // Navigasi
   window.setRole = (r) => { sessionStorage.setItem("role", r); render(); };
   window.backHome = () => { sessionStorage.removeItem("role"); location.href = location.pathname; };
-  window.backPrev = () => { history.back(); };
+ window.backPrev = () => { backHome(); };
 
   const app = document.getElementById("app");
 
@@ -354,3 +354,4 @@
 </body>
 
 </html>
+
