@@ -38,12 +38,15 @@
   .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); }
 
   /* MENU GRID */
-  .menu-grid { padding: 0 20px; display: grid; gap: 15px; }
-  .menu-card { background: var(--white); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border: 1px solid transparent; }
+  .menu-grid { padding: 0 20px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .menu-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; }
   .menu-card:active { transform: scale(0.98); }
-  .menu-info b { display: block; font-size: 16px; margin-bottom: 4px; }
-  .menu-info small { color: var(--primary); font-weight: 600; font-size: 14px; }
-  .add-btn { background: var(--grey); color: var(--dark); border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  /* Cursor Pointer pada gambar menandakan bisa diklik */
+  .menu-img { width: 100%; height: 120px; object-fit: cover; background: #eee; cursor: zoom-in; }
+  .menu-content { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .menu-info b { display: block; font-size: 14px; margin-bottom: 4px; line-height: 1.2; }
+  .menu-info small { color: var(--primary); font-weight: 600; font-size: 13px; }
+  .add-btn { background: var(--grey); color: var(--dark); border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-top: 5px; }
   .add-btn:hover { background: var(--primary); color: #fff; }
 
   /* FLOATING BAR */
@@ -52,7 +55,7 @@
   .cart-btn-floating { background: var(--primary); color: #fff; padding: 16px; border-radius: 14px; font-weight: 600; text-align: center; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 
   /* MODALS GENERIC */
-  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
   
   /* Bottom Sheet (Keranjang/Detail) */
   .modal-sheet { background:#fff; width:100%; border-radius: 24px 24px 0 0; padding:25px; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto; position: absolute; bottom: 0; }
@@ -60,19 +63,26 @@
   /* Center Popup (Alert/Confirm) */
   .modal-popup { background:#fff; width:85%; max-width:350px; border-radius: 20px; padding:25px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
   
+  /* Image Preview Modal */
+  .modal-image-box { max-width: 90%; max-height: 80vh; position: relative; animation: zoomIn 0.3s ease; }
+  .modal-image-box img { max-width: 100%; max-height: 80vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); object-fit: contain; }
+  .close-img-btn { position: absolute; top: -40px; right: 0; color: #fff; font-size: 30px; cursor: pointer; background: rgba(0,0,0,0.5); width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding-bottom: 4px; }
+
   @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
   @keyframes popIn { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
+  @keyframes zoomIn { from{transform:scale(0.5); opacity:0} to{transform:scale(1); opacity:1} }
 
   /* TOAST */
   #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 90%; max-width: 400px; }
   .toast { background: rgba(44, 62, 80, 0.95); color: #fff; padding: 12px 20px; border-radius: 50px; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: fadeDown 0.4s ease; }
   @keyframes fadeDown { from{opacity:0; transform:translateY(-20px)} to{opacity:1; transform:translateY(0)} }
   
-  /* CUSTOM BUTTONS */
+  /* CUSTOM BUTTONS & DETAILS */
   .btn-sys { padding: 12px; border-radius: 10px; border: 0; font-weight: 600; font-size: 14px; flex: 1; cursor: pointer; }
   .btn-sys-primary { background: var(--primary); color: #fff; }
   .btn-sys-ghost { background: #f1f2f6; color: #555; }
   .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+  .detail-total { display: flex; justify-content: space-between; margin-top: 15px; font-size: 16px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -122,11 +132,15 @@
     <div class="modal-popup" onclick="event.stopPropagation()">
         <h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3>
         <p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p>
-        
         <input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center">
-        
-        <div id="sysButtons" style="display:flex; gap:10px; justify-content:center;">
-            </div>
+        <div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div>
+    </div>
+</div>
+
+<div id="imgModal" class="modal-overlay" onclick="closeImage()">
+    <div class="modal-image-box" onclick="event.stopPropagation()">
+        <div class="close-img-btn" onclick="closeImage()">✕</div>
+        <img id="previewImage" src="">
     </div>
 </div>
 
@@ -157,24 +171,15 @@
   let kategoriAktif = "Semua";
   let lastStatusMap = {}; 
 
-  // --- HELPER SYSTEM MODALS (CUSTOM ALERT/CONFIRM/PROMPT) ---
-  
+  // --- HELPERS SYSTEM MODALS ---
   window.appAlert = (msg) => {
       return new Promise(resolve => {
           document.getElementById('sysTitle').innerText = "Info";
           document.getElementById('sysMsg').innerText = msg;
           document.getElementById('sysInput').style.display = 'none';
-          
-          const btnArea = document.getElementById('sysButtons');
-          btnArea.innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`;
-          
-          const modal = document.getElementById('sysModal');
-          modal.style.display = 'flex';
-          
-          document.getElementById('btnOk').onclick = () => {
-              modal.style.display = 'none';
-              resolve(true);
-          };
+          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`;
+          document.getElementById('sysModal').style.display = 'flex';
+          document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
       });
   };
 
@@ -183,18 +188,10 @@
           document.getElementById('sysTitle').innerText = "Konfirmasi";
           document.getElementById('sysMsg').innerText = msg;
           document.getElementById('sysInput').style.display = 'none';
-          
-          const btnArea = document.getElementById('sysButtons');
-          btnArea.innerHTML = `
-            <button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button>
-            <button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>
-          `;
-          
-          const modal = document.getElementById('sysModal');
-          modal.style.display = 'flex';
-          
-          document.getElementById('btnNo').onclick = () => { modal.style.display = 'none'; resolve(false); };
-          document.getElementById('btnYes').onclick = () => { modal.style.display = 'none'; resolve(true); };
+          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`;
+          document.getElementById('sysModal').style.display = 'flex';
+          document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); };
+          document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
       });
   };
 
@@ -202,22 +199,11 @@
       return new Promise(resolve => {
           document.getElementById('sysTitle').innerText = "Input";
           document.getElementById('sysMsg').innerText = msg;
-          const input = document.getElementById('sysInput');
-          input.style.display = 'block';
-          input.value = "";
-          input.placeholder = placeholder;
-          input.focus();
-          
-          const btnArea = document.getElementById('sysButtons');
-          btnArea.innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`;
-          
-          const modal = document.getElementById('sysModal');
-          modal.style.display = 'flex';
-          
-          document.getElementById('btnSubmit').onclick = () => {
-              modal.style.display = 'none';
-              resolve(input.value);
-          };
+          const inp = document.getElementById('sysInput');
+          inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.focus();
+          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`;
+          document.getElementById('sysModal').style.display = 'flex';
+          document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); };
       });
   };
 
@@ -234,88 +220,61 @@
         const orderId = change.doc.id;
         if (meja && data.meja == meja) {
             if (change.type === "modified") {
-                if (data.status === "Diproses" && lastStatusMap[orderId] !== "Diproses") {
-                    showToast(`👨‍🍳 Pesanan sedang dimasak!`);
-                    playSound();
-                }
-                if (data.status === "Siap" && lastStatusMap[orderId] !== "Siap") {
-                    showToast(`✅ Makanan SIAP diambil!`);
-                    playSound();
-                }
+                if (data.status === "Diproses" && lastStatusMap[orderId] !== "Diproses") { showToast(`👨‍🍳 Pesanan sedang dimasak!`); playSound(); }
+                if (data.status === "Siap" && lastStatusMap[orderId] !== "Siap") { showToast(`✅ Makanan SIAP diambil!`); playSound(); }
             }
             lastStatusMap[orderId] = data.status;
         }
     });
-
     const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(meja){
-        myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
-    }
+    if(meja) myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     renderFloatingBar();
   });
 
   function showToast(msg) {
       const container = document.getElementById("toast-container");
-      const el = document.createElement("div");
-      el.className = "toast";
-      el.innerHTML = `<span>🔔</span> ${msg}`;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 4000);
+      const el = document.createElement("div"); el.className = "toast"; el.innerHTML = `<span>🔔</span> ${msg}`;
+      container.appendChild(el); setTimeout(() => el.remove(), 4000);
   }
-
   function playSound() {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-      audio.play().catch(e => console.log("Audio play blocked"));
+      audio.play().catch(e => console.log("Audio blocked"));
   }
 
-  // --- RENDER UTAMA ---
+  // --- RENDER ---
   window.render = () => {
     const mejaEl = document.getElementById("mejaInfo");
     if(mejaEl) mejaEl.innerText = meja ? `Meja ${meja}` : "Pilih Meja";
 
     if(!meja){
-        document.getElementById("app").innerHTML = `
-            <div style="text-align:center; padding:50px 20px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/1255/1255953.png" width="100" style="margin-bottom:20px; opacity:0.5">
-                <h3>Selamat Datang!</h3>
-                <p style="color:#777">Silakan pilih nomor meja untuk mulai memesan makanan.</p>
-                <button onclick="setMejaManual()" style="background:var(--primary); color:#fff; border:0; padding:12px 30px; border-radius:30px; font-weight:600; margin-top:20px">Pilih Meja</button>
-            </div>`;
+        document.getElementById("app").innerHTML = `<div style="text-align:center; padding:50px 20px;"><img src="https://cdn-icons-png.flaticon.com/512/1255/1255953.png" width="100" style="margin-bottom:20px; opacity:0.5"><h3>Selamat Datang!</h3><p style="color:#777">Silakan pilih nomor meja untuk mulai memesan makanan.</p><button onclick="setMejaManual()" style="background:var(--primary); color:#fff; border:0; padding:12px 30px; border-radius:30px; font-weight:600; margin-top:20px">Pilih Meja</button></div>`;
         return;
     }
 
     let html = `
-        <div class="hero-text">
-            <h1>Mau makan apa?</h1>
-            <p>Temukan rasa favoritmu hari ini.</p>
-        </div>
-
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari bakso, es teh..." onkeyup="realtimeSearch(this.value)">
-        </div>
-
+        <div class="hero-text"><h1>Mau makan apa?</h1><p>Temukan rasa favoritmu hari ini.</p></div>
+        <div class="search-container"><input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari bakso, es teh..." onkeyup="realtimeSearch(this.value)"></div>
         <div class="cat-wrapper">
             <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">Semua</button>
             <button class="cat-btn ${kategoriAktif=='Makanan'?'active':''}" onclick="gantiKategori('Makanan')">Makanan</button>
             <button class="cat-btn ${kategoriAktif=='Minuman'?'active':''}" onclick="gantiKategori('Minuman')">Minuman</button>
             <button class="cat-btn ${kategoriAktif=='Cemilan'?'active':''}" onclick="gantiKategori('Cemilan')">Cemilan</button>
         </div>
-
-        <div class="menu-grid" id="menuGrid">
-    `;
+        <div class="menu-grid" id="menuGrid">`;
 
     let filtered = kategoriAktif === 'Semua' ? menus : menus.filter(m => m.kategori === kategoriAktif);
-
     if(filtered.length === 0) html += `<div style="text-align:center; grid-column:1/-1; padding:40px; color:#999">Tidak ditemukan</div>`;
 
     filtered.forEach(m => {
+        // IMAGE CLICK EVENT ADDED HERE
+        let imgSrc = m.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
         html += `
         <div class="menu-card searchable-item" data-name="${m.nama.toLowerCase()}">
-            <div class="menu-info">
-                <b>${m.nama}</b>
-                <small>Rp ${m.harga.toLocaleString()}</small>
+            <img src="${imgSrc}" class="menu-img" onclick="openImage('${imgSrc}')">
+            <div class="menu-content">
+                <div class="menu-info"><b>${m.nama}</b><small>Rp ${m.harga.toLocaleString()}</small></div>
+                <button class="add-btn" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+</button>
             </div>
-            <button class="add-btn" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+</button>
         </div>`;
     });
 
@@ -323,166 +282,68 @@
     document.getElementById("app").innerHTML = html;
     
     const searchEl = document.getElementById("searchInput");
-    if(searchEl && window.currentSearchTerm) {
-        searchEl.value = window.currentSearchTerm;
-        realtimeSearch(window.currentSearchTerm);
-    }
+    if(searchEl && window.currentSearchTerm) { searchEl.value = window.currentSearchTerm; realtimeSearch(window.currentSearchTerm); }
   };
+
+  // --- IMAGE PREVIEW FUNCTIONS ---
+  window.openImage = (url) => {
+      document.getElementById('previewImage').src = url;
+      document.getElementById('imgModal').style.display = 'flex';
+  }
+  window.closeImage = () => {
+      document.getElementById('imgModal').style.display = 'none';
+  }
 
   window.realtimeSearch = (val) => {
       window.currentSearchTerm = val.toLowerCase();
-      const items = document.querySelectorAll(".searchable-item");
-      items.forEach(el => {
-          const name = el.getAttribute("data-name");
-          el.style.display = name.includes(window.currentSearchTerm) ? "flex" : "none";
+      document.querySelectorAll(".searchable-item").forEach(el => {
+          el.style.display = el.getAttribute("data-name").includes(window.currentSearchTerm) ? "flex" : "none";
       });
   }
 
   function renderFloatingBar() {
-      const el = document.getElementById("floatingArea");
-      let html = "";
-
+      const el = document.getElementById("floatingArea"); let html = "";
       if(myOrders.length > 0) {
           myOrders.forEach(p => {
-              let icon = "⏳";
-              let msg = "Menunggu Pembayaran";
-              let color = "#f39c12"; 
+              let icon = "⏳"; let msg = "Menunggu Pembayaran"; let color = "#f39c12"; 
               if(p.status === "Diproses") { icon = "👨‍🍳"; msg = "Sedang Dimasak"; color = "#3498db"; }
               if(p.status === "Siap") { icon = "✅"; msg = "Siap Diambil!"; color = "#2ecc71"; }
-
-              html += `
-              <div class="status-card" style="border-left: 5px solid ${color}" onclick="showOrderDetail('${p.id}')">
-                  <div style="display:flex; align-items:center; gap:10px">
-                    <span style="font-size:20px">${icon}</span>
-                    <div>
-                        <div style="font-weight:700">${msg}</div>
-                        <div style="opacity:0.8; font-size:11px">Lihat Detail ➜</div>
-                    </div>
-                  </div>
-              </div>`;
+              html += `<div class="status-card" style="border-left: 5px solid ${color}" onclick="showOrderDetail('${p.id}')"><div style="display:flex; align-items:center; gap:10px"><span style="font-size:20px">${icon}</span><div><div style="font-weight:700">${msg}</div><div style="opacity:0.8; font-size:11px">Lihat Detail ➜</div></div></div></div>`;
           });
       }
-
       if(cart.length > 0) {
-          const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
-          const count = cart.reduce((s,i)=>s+i.qty,0);
-          html += `
-          <div class="cart-btn-floating" onclick="toggleCart()">
-              <div style="display:flex; align-items:center; gap:10px">
-                <span style="background:rgba(255,255,255,0.3); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px">${count}</span>
-                <span>Keranjang</span>
-              </div>
-              <span>Rp ${total.toLocaleString()}</span>
-          </div>`;
+          const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0); const count = cart.reduce((s,i)=>s+i.qty,0);
+          html += `<div class="cart-btn-floating" onclick="toggleCart()"><div style="display:flex; align-items:center; gap:10px"><span style="background:rgba(255,255,255,0.3); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px">${count}</span><span>Keranjang</span></div><span>Rp ${total.toLocaleString()}</span></div>`;
       }
       el.innerHTML = html;
   }
 
   window.showOrderDetail = (id) => {
-      const order = myOrders.find(o => o.id === id);
-      if(!order) return;
-
+      const order = myOrders.find(o => o.id === id); if(!order) return;
       const container = document.getElementById("orderDetailContent");
-      let html = `
-        <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:15px; font-size:14px">
-            <b>Status:</b> ${order.status}<br>
-            <b>Waktu:</b> ${order.tanggalString}
-        </div>
-        <div>
-      `;
-      order.items.forEach(i => {
-          html += `
-          <div class="detail-row">
-              <span>${i.nama} <small>x${i.qty}</small></span>
-              <span>Rp ${(i.harga*i.qty).toLocaleString()}</span>
-          </div>`;
-      });
-      html += `</div>
-        <div class="detail-total">
-            <span>Total Bayar</span>
-            <span>Rp ${order.total.toLocaleString()}</span>
-        </div>
-        ${order.catatan ? `<div style="margin-top:10px; font-size:13px; color:red">Note: ${order.catatan}</div>` : ''}`;
-
-      container.innerHTML = html;
-      document.getElementById("orderDetailModal").style.display = "flex";
+      let html = `<div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:15px; font-size:14px"><b>Status:</b> ${order.status}<br><b>Waktu:</b> ${order.tanggalString}</div><div>`;
+      order.items.forEach(i => { html += `<div class="detail-row"><span>${i.nama} <small>x${i.qty}</small></span><span>Rp ${(i.harga*i.qty).toLocaleString()}</span></div>`; });
+      html += `</div><div class="detail-total"><span>Total Bayar</span><span>Rp ${order.total.toLocaleString()}</span></div>${order.catatan ? `<div style="margin-top:10px; font-size:13px; color:red">Note: ${order.catatan}</div>` : ''}`;
+      container.innerHTML = html; document.getElementById("orderDetailModal").style.display = "flex";
   };
-
-  window.closeDetail = (e) => { 
-      if(!e || e.target.id === 'orderDetailModal' || !e.target.id) document.getElementById("orderDetailModal").style.display = "none"; 
-  };
-
-  window.toggleCart = () => {
-      const modal = document.getElementById("cartModal");
-      if(modal.style.display === "flex") modal.style.display = "none";
-      else { modal.style.display = "flex"; renderCartList(); }
-  };
+  window.closeDetail = (e) => { if(!e || e.target.id === 'orderDetailModal' || !e.target.id) document.getElementById("orderDetailModal").style.display = "none"; };
+  
+  window.toggleCart = () => { const modal = document.getElementById("cartModal"); if(modal.style.display === "flex") modal.style.display = "none"; else { modal.style.display = "flex"; renderCartList(); } };
   window.closeCart = (e) => { if(e.target.id === 'cartModal') toggleCart(); };
 
   function renderCartList() {
-      const el = document.getElementById("cartList");
-      if(cart.length === 0) { el.innerHTML = "<p>Kosong</p>"; return; }
-      let html = "";
-      cart.forEach(c => {
-          html += `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f5f5f5; padding-bottom:10px">
-              <div>
-                  <div style="font-weight:600">${c.nama}</div>
-                  <div style="color:var(--primary); font-size:14px">Rp ${(c.harga*c.qty).toLocaleString()}</div>
-              </div>
-              <div style="display:flex; align-items:center; gap:10px; background:#f5f5f5; padding:5px 10px; border-radius:20px">
-                  <span onclick="updateQty('${c.id}', -1)" style="cursor:pointer; font-weight:bold; color:#555">-</span>
-                  <span style="font-weight:600; font-size:14px; min-width:15px; text-align:center">${c.qty}</span>
-                  <span onclick="updateQty('${c.id}', 1)" style="cursor:pointer; font-weight:bold; color:var(--primary)">+</span>
-              </div>
-          </div>`;
-      });
-      el.innerHTML = html;
+      const el = document.getElementById("cartList"); if(cart.length === 0) { el.innerHTML = "<p>Kosong</p>"; return; } let html = "";
+      cart.forEach(c => { html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #f5f5f5; padding-bottom:10px"><div><div style="font-weight:600">${c.nama}</div><div style="color:var(--primary); font-size:14px">Rp ${(c.harga*c.qty).toLocaleString()}</div></div><div style="display:flex; align-items:center; gap:10px; background:#f5f5f5; padding:5px 10px; border-radius:20px"><span onclick="updateQty('${c.id}', -1)" style="cursor:pointer; font-weight:bold; color:#555">-</span><span style="font-weight:600; font-size:14px; min-width:15px; text-align:center">${c.qty}</span><span onclick="updateQty('${c.id}', 1)" style="cursor:pointer; font-weight:bold; color:var(--primary)">+</span></div></div>`; }); el.innerHTML = html;
   }
 
-  window.addToCart = (id, nama, harga) => {
-    const exist = cart.find(c => c.id === id);
-    if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1});
-    renderFloatingBar();
-    showToast(`"${nama}" masuk keranjang`);
-  };
-
-  window.updateQty = (id, delta) => {
-      const item = cart.find(c => c.id === id);
-      if(item) {
-          item.qty += delta;
-          if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
-          renderCartList(); renderFloatingBar();
-      }
-  };
-
-  // --- ACTION PAKAI CUSTOM MODAL (AWAIT) ---
-  window.checkout = async () => {
-    if(!cart.length) return;
-    if(!await appConfirm("Kirim pesanan sekarang?")) return;
-    
-    const catatan = document.getElementById("catatan").value;
-    const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
-    try {
-      await addDoc(collection(db, "pesanan"), {
-        meja, items: cart, catatan, total, status: "Menunggu Pembayaran",
-        createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID")
-      });
-      await appAlert("Pesanan Terkirim! Mohon segera bayar di kasir.");
-      cart = []; toggleCart(); renderFloatingBar();
-    } catch(e){ await appAlert("Error: " + e.message); }
-  };
-
+  window.addToCart = (id, nama, harga) => { const exist = cart.find(c => c.id === id); if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1}); renderFloatingBar(); showToast(`"${nama}" masuk keranjang`); };
+  window.updateQty = (id, delta) => { const item = cart.find(c => c.id === id); if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(c => c.id !== id); renderCartList(); renderFloatingBar(); } };
+  
+  window.checkout = async () => { if(!cart.length) return; if(!await appConfirm("Kirim pesanan?")) return; const catatan = document.getElementById("catatan").value; const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0); try { await addDoc(collection(db, "pesanan"), { meja, items: cart, catatan, total, status: "Menunggu Pembayaran", createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID") }); await appAlert("Pesanan Terkirim! Mohon segera bayar di kasir."); cart = []; toggleCart(); renderFloatingBar(); } catch(e){ await appAlert("Error: " + e.message); } };
+  
   window.gantiKategori = (kat) => { kategoriAktif = kat; render(); };
-  
-  window.setMejaManual = async () => {
-      const input = await appPrompt("Masukkan Nomor Meja:", "Contoh: 5");
-      if(input) { sessionStorage.setItem("meja", input); location.reload(); }
-  };
-  
-  window.gantiMeja = async () => {
-      if(await appConfirm("Ganti nomor meja?")) { sessionStorage.removeItem("meja"); location.reload(); }
-  };
+  window.setMejaManual = async () => { const input = await appPrompt("Nomor Meja:", "Contoh: 5"); if(input) { sessionStorage.setItem("meja", input); location.reload(); } };
+  window.gantiMeja = async () => { if(await appConfirm("Ganti nomor meja?")) { sessionStorage.removeItem("meja"); location.reload(); } };
 
 </script>
 </body>
