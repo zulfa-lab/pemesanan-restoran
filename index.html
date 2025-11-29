@@ -206,12 +206,56 @@
     renderCart();
   };
 
+  // --- GANTI BAGIAN INI ---
+
+  // Fungsi Hapus Item dari Cart (Baru)
+  window.hapusDariCart = (id) => {
+    const item = cart.find(c => c.id === id);
+    if(item.qty > 1) {
+      item.qty--; 
+    } else {
+      cart = cart.filter(c => c.id !== id);
+    }
+    renderCart();
+  };
+
+  // Fungsi Render Cart yang LEBIH LENGKAP
   window.renderCart = () => {
     const el = document.getElementById("cartArea");
     if(!el) return;
-    if(!cart.length) { el.innerHTML="Keranjang Kosong"; return; }
-    const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
-    el.innerHTML = `<b>Total: Rp ${total.toLocaleString()}</b> (${cart.length} jenis item)`;
+    
+    // Jika kosong
+    if(!cart.length) { 
+      el.innerHTML = `<div style="padding:10px; background:#eee; color:#666; border-radius:5px; text-align:center">Keranjang Masih Kosong</div>`; 
+      return; 
+    }
+
+    // Jika ada isi, tampilkan detailnya
+    let html = `<div style="background:#fff; border:1px solid #ddd; padding:10px; border-radius:8px">`;
+    html += `<b>Isi Keranjang:</b><br>`;
+    
+    let total = 0;
+    cart.forEach(item => {
+      let subtotal = item.harga * item.qty;
+      total += subtotal;
+      html += `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-bottom:1px dashed #eee; padding-bottom:5px">
+          <div>
+            ${item.nama} <small>x${item.qty}</small><br>
+            <small class="muted">Rp ${subtotal.toLocaleString()}</small>
+          </div>
+          <div>
+            <button class="btn btn-danger" style="padding:2px 8px; font-size:12px" onclick="hapusDariCart('${item.id}')">-</button>
+            <button class="btn btn-success" style="padding:2px 8px; font-size:12px" onclick="addToCart('${item.id}', '${item.nama}', ${item.harga})">+</button>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `<div style="margin-top:10px; text-align:right; font-size:1.1rem">Total: <b>Rp ${total.toLocaleString()}</b></div>`;
+    html += `</div>`;
+    
+    el.innerHTML = html;
   };
 
   window.checkout = (meja) => {
@@ -308,4 +352,5 @@
 
 </script>
 </body>
+
 </html>
