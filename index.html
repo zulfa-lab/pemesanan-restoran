@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Menu Restoran</title>
+<title>Menu Restoran (OOP)</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { 
@@ -21,7 +21,6 @@
   /* HEADER */
   header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
   .header-content { display: flex; justify-content: space-between; align-items: center; }
-  /* Table Badge sekarang statis (cursor default) */
   .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: default; }
   
   /* HERO & SEARCH */
@@ -120,18 +119,55 @@
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
+  // ============================================
+  //  1. IMPLEMENTASI CLASS (PBO / OOP)
+  // ============================================
+
+  class MenuItem {
+      constructor(id, data) {
+          this.id = id;
+          this.nama = data.nama;
+          this.harga = data.harga;
+          this.kategori = data.kategori;
+          this.gambar = data.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
+      }
+      getFormattedPrice() {
+          return "Rp " + Number(this.harga).toLocaleString();
+      }
+  }
+
+  class OrderTicket {
+      constructor(id, data) {
+          this.id = id;
+          this.meja = data.meja;
+          this.items = data.items; 
+          this.catatan = data.catatan;
+          this.total = data.total;
+          this.status = data.status;
+          this.tanggalString = data.tanggalString;
+      }
+  }
+
+  // ============================================
+
   // --- STATE ---
   let menus = []; let cart = []; let myOrders = []; 
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
   let kategoriAktif = "Semua"; let lastStatusMap = {}; 
 
-  // --- HELPERS ---
+  // --- HELPERS (SYSTEM MODALS) ---
   window.appAlert = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Info"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appConfirm = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Konfirmasi"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); }; document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appPrompt = (msg, placeholder="...") => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Input"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.focus(); document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
 
   // --- LISTENERS ---
-  onSnapshot(collection(db, "menus"), (snapshot) => { menus = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); menus.sort((a,b) => a.nama.localeCompare(b.nama)); render(); });
+  onSnapshot(collection(db, "menus"), (snapshot) => { 
+    // INSTANSIASI CLASS MenuItem
+    menus = snapshot.docs.map(d => new MenuItem(d.id, d.data())); 
+    menus.sort((a,b) => a.nama.localeCompare(b.nama)); 
+    render(); 
+  });
+
   onSnapshot(collection(db, "pesanan"), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
         const data = change.doc.data(); const orderId = change.doc.id;
@@ -143,7 +179,8 @@
             lastStatusMap[orderId] = data.status;
         }
     });
-    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // INSTANSIASI CLASS OrderTicket
+    const allData = snapshot.docs.map(d => new OrderTicket(d.id, d.data()));
     if(meja) myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     renderFloatingBar();
   });
@@ -162,7 +199,7 @@
     }
 
     let html = `
-        <div class="hero-text"><h1>Mau pesan apa?</h1><p>Terserah mau pesen apa yang penting pesenn.</p></div>
+        <div class="hero-text"><h1>Mau makan apa?</h1><p>Temukan rasa favoritmu hari ini.</p></div>
         <div class="search-container"><input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari bakso, es teh..." onkeyup="realtimeSearch(this.value)"></div>
         <div class="cat-wrapper">
             <button class="cat-btn ${kategoriAktif=='Semua'?'active':''}" onclick="gantiKategori('Semua')">Semua</button>
@@ -176,12 +213,12 @@
     if(filtered.length === 0) html += `<div style="text-align:center; grid-column:1/-1; padding:40px; color:#999">Tidak ditemukan</div>`;
 
     filtered.forEach(m => {
-        let imgSrc = m.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
+        // IMAGE CLICK EVENT + CLASS METHOD CALL
         html += `
         <div class="menu-card searchable-item" data-name="${m.nama.toLowerCase()}">
-            <img src="${imgSrc}" class="menu-img" onclick="openImage('${imgSrc}')">
+            <img src="${m.gambar}" class="menu-img" onclick="openImage('${m.gambar}')">
             <div class="menu-content">
-                <div class="menu-info"><b>${m.nama}</b><small>Rp ${m.harga.toLocaleString()}</small></div>
+                <div class="menu-info"><b>${m.nama}</b><small>${m.getFormattedPrice()}</small></div>
                 <button class="add-btn" onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})">+</button>
             </div>
         </div>`;
@@ -229,6 +266,7 @@
       container.innerHTML = html; document.getElementById("orderDetailModal").style.display = "flex";
   };
   window.closeDetail = (e) => { if(!e || e.target.id === 'orderDetailModal' || !e.target.id) document.getElementById("orderDetailModal").style.display = "none"; };
+  
   window.toggleCart = () => { const modal = document.getElementById("cartModal"); if(modal.style.display === "flex") modal.style.display = "none"; else { modal.style.display = "flex"; renderCartList(); } };
   window.closeCart = (e) => { if(e.target.id === 'cartModal') toggleCart(); };
 
@@ -241,13 +279,10 @@
   window.updateQty = (id, delta) => { const item = cart.find(c => c.id === id); if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(c => c.id !== id); renderCartList(); renderFloatingBar(); } };
   
   window.checkout = async () => { if(!cart.length) return; if(!await appConfirm("Kirim pesanan?")) return; const catatan = document.getElementById("catatan").value; const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0); try { await addDoc(collection(db, "pesanan"), { meja, items: cart, catatan, total, status: "Menunggu Pembayaran", createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID") }); await appAlert("Pesanan Terkirim! Mohon segera bayar di kasir."); cart = []; toggleCart(); renderFloatingBar(); } catch(e){ await appAlert("Error: " + e.message); } };
+  
   window.gantiKategori = (kat) => { kategoriAktif = kat; render(); };
   window.setMejaManual = async () => { const input = await appPrompt("Nomor Meja:", "Contoh: 5"); if(input) { sessionStorage.setItem("meja", input); location.reload(); } };
-  
-  // FITUR GANTI MEJA DIHAPUS (Hanya Reset Total)
-  // Tidak ada tombol ganti meja di UI, jadi function ini tidak dipanggil
   
 </script>
 </body>
 </html>
-
