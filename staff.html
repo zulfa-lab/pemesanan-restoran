@@ -115,19 +115,27 @@
 
   // 1. DAPUR
   function renderDapur(el){
-      let h = `<div class="card"><h3>Antrian Dapur</h3>`;
-      const tasks = pesananList.filter(p => p.status !== 'Selesai');
-      if(!tasks.length) h += "<i>Tidak ada pesanan aktif.</i>";
+      let h = `<div class="card"><h3>👨‍🍳 Dapur</h3>`;
+      
+      // FILTER PENTING:
+      // Dapur HANYA melihat yang 'Diproses' atau 'Siap'.
+      // Yang 'Menunggu Pembayaran' JANGAN ditampilkan.
+      const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
+      
+      if(!tasks.length) h += "<i>Belum ada pesanan masuk (yang sudah lunas).</i>";
       
       tasks.forEach(p => {
           let color = p.status === 'Siap' ? '#d4edda' : '#fff';
           h += `<div style="background:${color}; border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:5px">
-             <b>Meja ${p.meja}</b> (${p.status})
+             <div style="display:flex; justify-content:space-between">
+                <b>Meja ${p.meja}</b> <span style="background:#2ecc71; color:#fff; padding:2px 5px; border-radius:4px; font-size:10px">SUDAH BAYAR</span>
+             </div>
              <ul>${p.items.map(i=>`<li>${i.nama} x${i.qty}</li>`).join('')}</ul>
-             ${p.catatan ? `<small style="color:red">Note: ${p.catatan}</small><br>` : ''}
-             <div style="margin-top:5px">
-                ${p.status==='Diproses' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Siap')">✅ Siap Saji</button>` : ''}
-                ${p.status==='Siap' ? `<button class="btn btn-green" onclick="ubahStatus('${p.id}','Selesai')">🍽️ Diambil</button>` : ''}
+             ${p.catatan ? `<div style="background:#ffdddd; padding:5px; color:red; font-size:12px; border-radius:3px">⚠️ Note: ${p.catatan}</div>` : ''}
+             
+             <div style="margin-top:10px; text-align:right">
+                ${p.status==='Diproses' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Siap')">🍳 Masakan Siap!</button>` : ''}
+                ${p.status==='Siap' ? `<span style="color:green; font-weight:bold">Menunggu diambil...</span>` : ''}
              </div>
           </div>`;
       });
@@ -136,28 +144,46 @@
   }
 
   // 2. KASIR
-  function renderKasir(el){
-      let h = `<div class="card"><h3>Kasir & Menu</h3>`;
+ function renderKasir(el){
+      let h = `<div class="card"><h3>🖥️ Kasir (Pembayaran)</h3>`;
       
-      // Tambah Menu
-      h += `<div style="background:#eee; padding:10px; border-radius:5px; margin-bottom:10px">
-        <b>+ Menu Baru:</b> 
-        <input id="newMenuName" placeholder="Nama" style="width:40%"> 
-        <input id="newMenuPrice" placeholder="Harga" type="number" style="width:30%">
-        <button class="btn btn-blue" onclick="tambahMenu()">Simpan</button>
-      </div>`;
+      // Filter pesanan yang statusnya belum selesai
+      // Urutkan: Yang "Menunggu Pembayaran" taruh paling atas
+      let activeOrders = pesananList.filter(p => p.status !== 'Selesai');
+      
+      activeOrders.forEach(p => {
+          let isUnpaid = p.status === "Menunggu Pembayaran";
+          let bg = isUnpaid ? "#fff3cd" : "#fff"; // Kuning kalau belum bayar
+          let border = isUnpaid ? "2px solid #ffc107" : "1px solid #ddd";
 
-      h += `<h4>Riwayat Transaksi</h4>`;
-      pesananList.forEach(p => {
-          h += `<div class="menu-item">
-            <div><b>Meja ${p.meja}</b> - Rp ${p.total.toLocaleString()}<br><small>${p.status} • ${p.tanggalString}</small></div>
-            ${p.status !== 'Selesai' ? `<button class="btn btn-green" onclick="ubahStatus('${p.id}','Selesai')">Lunas</button>` : '✅'}
+          h += `<div class="menu-item" style="display:block; background:${bg}; border:${border}; border-radius:8px; margin-bottom:10px">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <div>
+                    <b>Meja ${p.meja}</b> <small>(${p.tanggalString})</small><br>
+                    Status: <b style="color:${isUnpaid?'red':'green'}">${p.status}</b>
+                </div>
+                <div style="text-align:right">
+                    <b>Rp ${p.total.toLocaleString()}</b>
+                </div>
+            </div>
+            
+            <hr style="opacity:0.3">
+            <small>${p.items.map(i=>i.nama).join(', ')}</small>
+            
+            <div style="margin-top:10px; text-align:right">
+                ${isUnpaid 
+                  ? `<button class="btn btn-green" onclick="terimaBayar('${p.id}')">💰 Terima Pembayaran & Kirim ke Dapur</button>` 
+                  : `<button class="btn" disabled>Sudah Lunas</button>`
+                }
+                ${p.status === 'Siap' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Selesai')">Pesanan Selesai</button>` : ''}
+            </div>
           </div>`;
       });
       h += `</div>`;
       el.innerHTML = h;
   }
 
+  
   // 3. ADMIN (QR)
   function renderAdmin(el){
       // Link index.html (asumsi satu folder)
@@ -183,7 +209,12 @@
       let p = document.getElementById("newMenuPrice").value;
       if(n && p) { await addDoc(collection(db,"menus"),{nama:n, harga:Number(p)}); alert("Menu tersimpan"); }
   };
+  window.terimaBayar = async (id) => {
+      if(!confirm("Konfirmasi pembayaran diterima?")) return;
+      await updateDoc(doc(db,"pesanan",id), { status: "Diproses" });
+  };
 
 </script>
 </body>
+
 </html>
