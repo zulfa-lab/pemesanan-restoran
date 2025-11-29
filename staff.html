@@ -2,57 +2,162 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <title>Sistem Staff Resto</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --primary:#2c3e50; --acc:#3498db; --bg:#ecf0f1; }
-  body{ font-family:'Poppins',sans-serif; background:var(--bg); margin:0; padding:20px; }
-  .card{ background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:15px; }
-  .btn{ padding:10px 15px; border:none; border-radius:5px; cursor:pointer; color:#fff; font-weight:600; margin:5px; }
-  .btn-blue{ background:var(--acc); } .btn-green{ background:#27ae60; } .btn-red{ background:#c0392b; }
-  .login-box{ max-width:400px; margin:50px auto; text-align:center; }
-  input{ padding:10px; width:100%; margin:10px 0; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; }
-  .hidden{ display:none; }
-  .menu-item{ padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+  :root { 
+    --primary: #2d3436; 
+    --accent: #0984e3; /* Biru Profesional */
+    --success: #00b894; 
+    --warning: #fdcb6e;
+    --danger: #d63031;
+    --bg: #dfe6e9;
+    --card: #ffffff;
+    --radius: 12px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #2d3436; }
 
-  /* STYLE MODAL */
+  /* --- UTILS --- */
+  .hidden { display: none !important; }
+  .btn { border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
+  .btn:active { transform: scale(0.96); }
+  .btn-blue { background: var(--accent); color: #fff; }
+  .btn-green { background: var(--success); color: #fff; }
+  .btn-red { background: var(--danger); color: #fff; }
+  .btn-ghost { background: transparent; color: #636e72; border: 1px solid #b2bec3; }
+  
+  input, select { 
+    width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; 
+    margin-bottom: 10px; font-family: inherit; outline: none; transition: 0.3s;
+  }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.1); }
+
+  /* --- LOGIN CARD --- */
+  .login-wrapper { display: flex; height: 90vh; justify-content: center; align-items: center; }
+  .login-card { 
+    background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    width: 100%; max-width: 400px; text-align: center;
+  }
+  .brand-logo { font-size: 40px; margin-bottom: 10px; display: block; }
+
+  /* --- DASHBOARD GRID --- */
+  .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+  .role-card {
+    background: var(--card); padding: 20px; border-radius: 16px; text-align: center;
+    box-shadow: var(--shadow); cursor: pointer; transition: 0.3s; border: 2px solid transparent;
+  }
+  .role-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+  .role-icon { font-size: 32px; display: block; margin-bottom: 10px; }
+  .role-title { font-weight: 600; font-size: 16px; }
+  .role-desc { font-size: 12px; color: #636e72; }
+
+  /* --- FEATURE LAYOUT --- */
+  .top-bar { 
+    background: var(--card); padding: 15px 20px; border-radius: 12px; display: flex; 
+    justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .page-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+
+  /* --- TICKET CARD (KITCHEN & CASHIER) --- */
+  .ticket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+  .ticket {
+    background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; position: relative;
+  }
+  .ticket-header { 
+    padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; 
+    font-weight: 600; border-bottom: 1px dashed #dfe6e9;
+  }
+  .ticket-body { padding: 15px; flex: 1; }
+  .ticket-items { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  .ticket-items li { margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .ticket-note { background: #fff5f5; color: #c0392b; font-size: 12px; padding: 5px; border-radius: 4px; margin-top: 10px; }
+  .ticket-footer { padding: 12px 15px; background: #f8f9fa; border-top: 1px solid #eee; text-align: right; }
+
+  /* Status Colors */
+  .bg-unpaid { background: #ffeaa7; color: #d35400; }
+  .bg-process { background: #74b9ff; color: #0984e3; }
+  .bg-ready { background: #55efc4; color: #00b894; }
+
+  /* --- ADMIN STATS --- */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+  .stat-card { background: var(--primary); color: #fff; padding: 20px; border-radius: 16px; position: relative; overflow: hidden; }
+  .stat-val { font-size: 24px; font-weight: 700; display: block; }
+  .stat-label { font-size: 12px; opacity: 0.8; }
+  
+  /* --- ADMIN MENU LIST --- */
+  .menu-row { 
+    display: flex; justify-content: space-between; align-items: center; background: #fff; 
+    padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee;
+  }
+
+  /* --- MODAL --- */
   .modal-overlay {
       display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;
+      background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;
+      backdrop-filter: blur(3px);
   }
-  .modal-content {
-      background:#fff; width:90%; max-width:500px; max-height:80vh;
-      border-radius:10px; padding:20px; overflow-y:auto; position:relative;
-      animation: slideDown 0.3s ease;
+  .modal-box {
+      background:#fff; width:90%; max-width:500px; max-height:85vh;
+      border-radius:16px; padding:25px; overflow-y:auto; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  @keyframes slideDown { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes popUp { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+
 </style>
 </head>
 <body>
 
-<div id="loginPage" class="login-box card">
-    <h2>🔒 Staff Login</h2>
-    <p>Masukkan Password Staff</p>
-    <input type="password" id="passInput" placeholder="Password Staff...">
-    <button class="btn btn-blue" style="width:100%" onclick="cekLogin()">Masuk Kerja</button>
-    <p><small style="color:#888" id="statusPass">Menghubungkan Database...</small></p>
-</div>
-
-<div id="dashboardPage" class="container hidden" style="max-width:800px; margin:0 auto">
-    <div class="card" style="text-align:center">
-        <h2>Halo, Staff! 👋</h2>
-        <p>Silakan pilih mode kerja:</p>
-        <button class="btn btn-green" onclick="bukaHalaman('kasir')">🖥️ Kasir</button>
-        <button class="btn btn-blue" onclick="bukaHalaman('dapur')">👨‍🍳 Dapur</button>
-        <hr style="margin:20px 0; border:0; border-top:1px solid #eee">
-        <p>Area Terbatas:</p>
-        <button class="btn btn-red" onclick="bukaHalaman('admin')">⛔ Admin / Owner</button>
+<div id="loginPage" class="login-wrapper">
+    <div class="login-card">
+        <span class="brand-logo">🔒</span>
+        <h2 style="margin:0">Staff Portal</h2>
+        <p style="color:#636e72; margin-bottom:30px">Restoran Modern System</p>
+        
+        <input type="password" id="passInput" placeholder="Masukkan Kode Akses...">
+        <button class="btn btn-blue" style="width:100%; padding:15px; font-size:16px" onclick="cekLogin()">Masuk Dashboard</button>
+        <p style="margin-top:20px; font-size:12px; color:#b2bec3" id="statusPass">Menghubungkan Server...</p>
     </div>
 </div>
 
-<div id="fiturPage" class="container hidden" style="max-width:800px; margin:0 auto">
-    <button class="btn btn-red" onclick="kembaliKeDash()">⬅ Kembali ke Menu Utama</button>
+<div id="dashboardPage" class="container hidden" style="max-width:800px; margin:0 auto">
+    <div class="dash-header">
+        <div>
+            <h2 style="margin:0">Halo, Team! 👋</h2>
+            <small style="color:#636e72">Selamat bertugas, semangat!</small>
+        </div>
+        <button class="btn btn-ghost" onclick="logout()">Keluar</button>
+    </div>
+
+    <div class="role-grid">
+        <div class="role-card" onclick="bukaHalaman('kasir')">
+            <span class="role-icon">🖥️</span>
+            <div class="role-title">Kasir</div>
+            <div class="role-desc">Pembayaran & Order</div>
+        </div>
+        <div class="role-card" onclick="bukaHalaman('dapur')">
+            <span class="role-icon">👨‍🍳</span>
+            <div class="role-title">Dapur</div>
+            <div class="role-desc">Antrian Masak</div>
+        </div>
+        <div class="role-card" onclick="bukaHalaman('admin')" style="border-top: 3px solid var(--danger)">
+            <span class="role-icon">⚙️</span>
+            <div class="role-title">Owner</div>
+            <div class="role-desc">Menu & Laporan</div>
+        </div>
+    </div>
+</div>
+
+<div id="fiturPage" class="container hidden" style="max-width:1000px; margin:0 auto">
+    <div class="top-bar">
+        <div class="page-title" id="pageTitle">Halaman</div>
+        <button class="btn btn-ghost" onclick="kembaliKeDash()">⬅ Menu Utama</button>
+    </div>
+    
     <div id="kontenFitur"></div>
 </div>
 
@@ -61,6 +166,7 @@
   import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // --- CONFIG (Pastikan Config Benar) ---
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
     authDomain: "pemesanan-restoran.firebaseapp.com",
@@ -79,79 +185,58 @@
   let menus = [];
   let totalMeja = 5; 
   let adminKeyword = ""; 
-  
-  // DUA PASSWORD BERBEDA
   let staffPass = "staff123"; 
   let adminPass = "admin123";
 
-  // --- INIT LISTENERS ---
+  // --- INIT ---
   initListeners();
 
   function initListeners(){
-      // 1. Pesanan
+      // Pesanan
       onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
           pesananList = snap.docs.map(d => ({id:d.id, ...d.data()}));
           refreshCurrentView();
       });
-      // 2. Menu
+      // Menu
       onSnapshot(collection(db, "menus"), (snap)=>{
           menus = snap.docs.map(d => ({id:d.id, ...d.data()}));
           refreshCurrentView();
       });
-      // 3. Config Meja
-      onSnapshot(doc(db, "settings", "toko"), (docSnap) => {
-          if (docSnap.exists()) {
-              totalMeja = docSnap.data().totalMeja || 5;
-              refreshCurrentView();
-          }
-      });
-      
-      // 4. LISTENER DUAL PASSWORD (KEAMANAN)
-      onSnapshot(doc(db, "settings", "auth"), (docSnap) => {
+      // Settings (Meja & Auth)
+      onSnapshot(doc(db, "settings", "toko"), (s) => { if(s.exists()) totalMeja = s.data().totalMeja || 5; });
+      onSnapshot(doc(db, "settings", "auth"), (s) => {
           const statusEl = document.getElementById("statusPass");
-          if (docSnap.exists()) {
-              const data = docSnap.data();
-              staffPass = data.staffPassword || "staff123";
-              adminPass = data.adminPassword || "admin123";
-              if(statusEl) statusEl.innerText = "Sistem Online.";
+          if (s.exists()) {
+              staffPass = s.data().staffPassword || "staff123";
+              adminPass = s.data().adminPassword || "admin123";
+              if(statusEl) statusEl.innerText = "● Sistem Online";
           } else {
-              // Setup Default jika DB kosong
-              setDoc(doc(db, "settings", "auth"), { 
-                  staffPassword: "staff123", 
-                  adminPassword: "admin123" 
-              });
-              if(statusEl) statusEl.innerText = "Password Default Diaktifkan.";
+              setDoc(doc(db, "settings", "auth"), { staffPassword: "staff123", adminPassword: "admin123" });
+              if(statusEl) statusEl.innerText = "● Default Mode";
           }
       });
   }
 
-  // --- LOGIKA LOGIN (CUKUP PAKAI PASSWORD STAFF) ---
+  // --- AUTH & NAV ---
   window.cekLogin = () => {
       const p = document.getElementById("passInput").value;
-      // Bisa masuk pakai pass staff ATAU pass admin (admin otomatis boleh masuk)
       if(p === staffPass || p === adminPass){ 
           document.getElementById("loginPage").classList.add("hidden");
           document.getElementById("dashboardPage").classList.remove("hidden");
-      } else {
-          alert("Password Staff Salah!");
-      }
+      } else { alert("Password Salah!"); }
   };
+  window.logout = () => location.reload();
 
-  // --- NAVIGASI ---
   window.kembaliKeDash = () => {
       document.getElementById("fiturPage").classList.add("hidden");
       document.getElementById("dashboardPage").classList.remove("hidden");
   };
 
   window.bukaHalaman = (role) => {
-      // SECURITY CHECK KHUSUS ADMIN
       if(role === 'admin') {
-          let input = prompt("⛔ Area Terbatas! Masukkan Password Admin/Owner:");
-          if(input !== adminPass) {
-              return alert("Akses Ditolak! Password Admin Salah.");
-          }
+          let input = prompt("🔐 Keamanan: Masukkan Password Owner");
+          if(input !== adminPass) return alert("Akses Ditolak.");
       }
-
       document.getElementById("dashboardPage").classList.add("hidden");
       document.getElementById("fiturPage").classList.remove("hidden");
       renderFitur(role);
@@ -162,298 +247,222 @@
       if(mode) renderFitur(mode);
   }
 
-  // --- ROUTING RENDER ---
+  // --- RENDER ENGINE ---
   function renderFitur(role){
       const el = document.getElementById("kontenFitur");
+      const title = document.getElementById("pageTitle");
       el.setAttribute("data-mode", role); 
       
-      if(role === 'dapur') renderDapur(el);
-      else if(role === 'kasir') renderKasir(el);
-      else if(role === 'admin') renderAdmin(el);
+      if(role === 'dapur') { title.innerText = "👨‍🍳 Layar Dapur"; renderDapur(el); }
+      else if(role === 'kasir') { title.innerText = "🖥️ Kasir Station"; renderKasir(el); }
+      else if(role === 'admin') { title.innerText = "📊 Admin Dashboard"; renderAdmin(el); }
   }
 
-  // 1. DAPUR
+  // 1. RENDER DAPUR (TICKET STYLE)
   function renderDapur(el){
-      let h = `<div class="card"><h3>👨‍🍳 Dapur</h3>`;
       const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
-      
-      if(!tasks.length) h += "<i>Belum ada pesanan masuk.</i>";
-      
+      if(!tasks.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">😴 Tidak ada antrian masak</div>`; return; }
+
+      let h = `<div class="ticket-grid">`;
       tasks.forEach(p => {
-          let color = p.status === 'Siap' ? '#d4edda' : '#fff';
-          h += `<div style="background:${color}; border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:5px">
-             <div style="display:flex; justify-content:space-between">
-                <b>Meja ${p.meja}</b> <span style="background:#2ecc71; color:#fff; padding:2px 5px; border-radius:4px; font-size:10px">SUDAH BAYAR</span>
-             </div>
-             <ul>${p.items.map(i=>`<li>${i.nama} x${i.qty}</li>`).join('')}</ul>
-             ${p.catatan ? `<div style="background:#ffdddd; padding:5px; color:red; font-size:12px; border-radius:3px">⚠️ Note: ${p.catatan}</div>` : ''}
-             <div style="margin-top:10px; text-align:right">
-                ${p.status==='Diproses' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Siap')">🍳 Masakan Siap!</button>` : ''}
-                ${p.status==='Siap' ? `<span style="color:green; font-weight:bold">Menunggu diambil...</span>` : ''}
-             </div>
+          let isReady = p.status === 'Siap';
+          h += `
+          <div class="ticket" style="border-top: 5px solid ${isReady?'var(--success)':'var(--accent)'}">
+              <div class="ticket-header ${isReady?'bg-ready':'bg-process'}">
+                  <span>Meja ${p.meja}</span>
+                  <small>${p.tanggalString.split(',')[1] || ''}</small>
+              </div>
+              <div class="ticket-body">
+                  <ul class="ticket-items">
+                    ${p.items.map(i=>`<li><b>${i.qty}x</b> ${i.nama}</li>`).join('')}
+                  </ul>
+                  ${p.catatan ? `<div class="ticket-note">📝 ${p.catatan}</div>` : ''}
+              </div>
+              <div class="ticket-footer">
+                  ${!isReady ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Siap')">🍳 Selesai Masak</button>` : ''}
+                  ${isReady ? `<div style="color:var(--success); font-weight:bold">Menunggu Diantar...</div>` : ''}
+              </div>
           </div>`;
       });
       h += `</div>`;
       el.innerHTML = h;
   }
 
-  // 2. KASIR
+  // 2. RENDER KASIR (TICKET STYLE)
   function renderKasir(el){
-      let h = `<div class="card"><h3>🖥️ Kasir (Pembayaran)</h3>`;
-      let activeOrders = pesananList.filter(p => p.status !== 'Selesai');
-      
-      if(activeOrders.length === 0) h += `<i>Belum ada pesanan aktif.</i>`;
-      
-      activeOrders.forEach(p => {
-          let isUnpaid = p.status === "Menunggu Pembayaran";
-          let bg = isUnpaid ? "#fff3cd" : "#fff"; 
-          let border = isUnpaid ? "2px solid #ffc107" : "1px solid #ddd";
+      const orders = pesananList.filter(p => p.status !== 'Selesai');
+      if(!orders.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">✨ Semua transaksi beres</div>`; return; }
 
-          h += `<div class="menu-item" style="display:block; background:${bg}; border:${border}; border-radius:8px; margin-bottom:10px">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <div>
-                    <b>Meja ${p.meja}</b> <small>(${p.tanggalString})</small><br>
-                    Status: <b style="color:${isUnpaid?'red':'green'}">${p.status}</b>
-                </div>
-                <div style="text-align:right">
-                    <b>Rp ${p.total.toLocaleString()}</b>
-                </div>
-            </div>
-            <hr style="opacity:0.3; margin:8px 0">
-            <small style="color:#555">${p.items.map(i=>i.nama + " x" + i.qty).join(', ')}</small>
-            <div style="margin-top:10px; text-align:right">
-                ${isUnpaid 
-                  ? `<button class="btn btn-green" onclick="terimaBayar('${p.id}')">💰 Terima Bayar & Masak</button>` 
-                  : `<button class="btn" style="background:#ddd; color:#666; cursor:default">Sudah Lunas</button>`
-                }
-                ${p.status === 'Siap' ? `<button class="btn btn-blue" onclick="ubahStatus('${p.id}','Selesai')">✅ Pesanan Selesai</button>` : ''}
-            </div>
+      let h = `<div class="ticket-grid">`;
+      orders.forEach(p => {
+          let isUnpaid = p.status === "Menunggu Pembayaran";
+          let badgeClass = isUnpaid ? "bg-unpaid" : (p.status==='Siap'?'bg-ready':'bg-process');
+          
+          h += `
+          <div class="ticket">
+              <div class="ticket-header" style="background:#f8f9fa">
+                  <span>Meja ${p.meja}</span>
+                  <span class="btn" style="padding:2px 8px; font-size:10px; ${isUnpaid?'background:#ffeaa7; color:#d35400':'background:#eee'}">${p.status}</span>
+              </div>
+              <div class="ticket-body">
+                  <div style="font-size:24px; font-weight:700; margin-bottom:10px">Rp ${p.total.toLocaleString()}</div>
+                  <small style="color:#888">${p.items.length} Menu Item</small>
+                  <hr style="border:0; border-top:1px dashed #eee; margin:10px 0">
+                  <small style="color:#b2bec3">${p.items.map(i=>i.nama).join(', ')}</small>
+              </div>
+              <div class="ticket-footer">
+                  ${isUnpaid 
+                    ? `<button class="btn btn-green" style="width:100%" onclick="terimaBayar('${p.id}')">💰 Terima Rp ${p.total.toLocaleString()}</button>` 
+                    : `<div style="text-align:center; color:#b2bec3; font-size:12px">Lunas</div>`
+                  }
+                  ${p.status === 'Siap' ? `<button class="btn btn-blue" style="width:100%; margin-top:5px" onclick="ubahStatus('${p.id}','Selesai')">✅ Selesai (Diambil)</button>` : ''}
+              </div>
           </div>`;
       });
       h += `</div>`;
       el.innerHTML = h;
   }
 
-  // 3. ADMIN (FULL FEATURES + DUAL PASSWORD MANAGER)
+  // 3. RENDER ADMIN (WIDGET STYLE)
   function renderAdmin(el){
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
-      
-      // A. DASHBOARD
-      let h = `<div class="card"><h3>📊 Dashboard Owner</h3>
-        <div style="display:flex; gap:10px; margin-bottom:10px">
-            <div style="flex:1; background:#3498db; color:#fff; padding:15px; border-radius:8px; text-align:center">
-                <small>Omset</small><br><b style="font-size:1.2em">Rp ${totalUang.toLocaleString()}</b>
-            </div>
-            <div onclick="bukaRiwayat()" style="flex:1; background:#2ecc71; color:#fff; padding:15px; border-radius:8px; text-align:center; cursor:pointer">
-                <small>Transaksi</small><br><b style="font-size:1.2em">${totalTransaksi}</b>
-                <div style="font-size:10px">Klik utk Detail</div>
-            </div>
-        </div>
-      </div>`;
 
-      // B. MANAJEMEN MENU
-      h += `<div class="card">
-        <h3>🍔 Manajemen Menu</h3>
-        <div style="background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px">
-            <b>+ Tambah Menu Baru:</b>
-            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px">
-                <input id="newMenuName" placeholder="Nama Makanan..." style="margin:0">
-                <div style="display:flex; gap:10px">
-                    <select id="newMenuCat" style="flex:1; padding:10px; border-radius:5px; border:1px solid #ccc">
-                        <option value="Makanan">🍛 Makanan</option>
-                        <option value="Minuman">🥤 Minuman</option>
-                        <option value="Cemilan">🍟 Cemilan</option>
-                    </select>
-                    <input id="newMenuPrice" type="number" placeholder="Harga" style="flex:1; margin:0">
-                </div>
-                <button class="btn btn-blue" style="width:100%" onclick="tambahMenu()">Simpan Menu</button>
-            </div>
-        </div>
-        
-        <input type="text" id="searchAdminInput" placeholder="🔍 Cari menu..." 
-               onkeyup="cariAdminDOM(this.value)"
-               style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px; margin-bottom:10px">
-
-        <div style="max-height:300px; overflow-y:auto; border-top:1px solid #eee">
-            ${menus.map(m => `
-                <div class="admin-search-item" data-name="${m.nama.toLowerCase()}" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee">
-                    <div>
-                        <b>${m.nama}</b> <span style="font-size:10px; background:#eee; padding:2px 5px; border-radius:4px">${m.kategori || 'Umum'}</span><br>
-                        Rp ${m.harga.toLocaleString()}
-                    </div>
-                    <button class="btn btn-red" style="padding:4px 10px; font-size:12px; margin:0" onclick="hapusMenu('${m.id}')">Hapus</button>
-                </div>
-            `).join('')}
-        </div>
-      </div>`;
-
-      // C. SETUP MEJA
-      h += `<div class="card">
-          <h3>🪑 Pengaturan Meja</h3>
-          <p>Total meja:</p>
-          <div style="display:flex; gap:10px">
-              <input type="number" id="inputTotalMeja" value="${totalMeja}" style="margin:0">
-              <button class="btn btn-green" style="margin:0" onclick="updateTotalMeja()">Simpan</button>
+      let h = `
+      <div class="stat-grid">
+          <div class="stat-card" style="background:#2d3436">
+              <span class="stat-label">Total Omset</span>
+              <span class="stat-val">Rp ${totalUang.toLocaleString()}</span>
           </div>
-      </div>`;
+          <div class="stat-card" style="background:#0984e3; cursor:pointer" onclick="bukaRiwayat()">
+              <span class="stat-label">Transaksi Selesai</span>
+              <span class="stat-val">${totalTransaksi} 📦</span>
+          </div>
+      </div>
 
-      // D. CETAK QR
-      let baseURL = window.location.href.replace("staff.html", "index.html");
-      h += `<div class="card"><h3>🖨️ Cetak QR</h3>
-      <div style="display:flex; flex-wrap:wrap; gap:10px">`;
-      for(let i=1; i<=totalMeja; i++){
-          let link = `${baseURL}?table=${i}`;
-          let qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
-          h += `<div style="text-align:center; border:1px solid #ddd; padding:5px; border-radius:5px; width:120px">
-            <img src="${qr}" width="100"><br><small>Meja ${i}</small>
-          </div>`;
-      }
-      h += `</div></div>`;
+      <div class="ticket-grid">
+          <div class="ticket" style="grid-column: span 2">
+              <div class="ticket-header">🍔 Manajemen Menu</div>
+              <div class="ticket-body">
+                 <div style="display:flex; gap:10px; margin-bottom:15px">
+                    <input id="newMenuName" placeholder="Nama..." style="flex:2; margin:0">
+                    <select id="newMenuCat" style="flex:1; margin:0">
+                        <option value="Makanan">Makanan</option><option value="Minuman">Minuman</option><option value="Cemilan">Cemilan</option>
+                    </select>
+                    <input id="newMenuPrice" type="number" placeholder="Rp" style="flex:1; margin:0">
+                    <button class="btn btn-blue" onclick="tambahMenu()">+</button>
+                 </div>
+                 <input placeholder="🔍 Cari menu..." onkeyup="cariAdminDOM(this.value)" id="searchAdminInput" style="background:#f1f2f6">
+                 
+                 <div style="max-height:250px; overflow-y:auto; margin-top:10px">
+                    ${menus.map(m => `
+                        <div class="menu-row admin-search-item" data-name="${m.nama.toLowerCase()}">
+                            <div><b>${m.nama}</b> <small class="btn" style="padding:2px 5px; font-size:10px; background:#eee">${m.kategori}</small></div>
+                            <div>
+                                <b style="margin-right:10px">Rp ${m.harga.toLocaleString()}</b>
+                                <button class="btn btn-red" style="padding:5px 10px" onclick="hapusMenu('${m.id}')">×</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                 </div>
+              </div>
+          </div>
 
-      // E. KEAMANAN DUAL PASSWORD (BARU!)
-      h += `<div class="card" style="border:1px solid #2980b9; background:#ecf0f1">
-         <h3 style="color:#2980b9">🔒 Manajemen Password</h3>
-         
-         <div style="margin-bottom:15px; background:#fff; padding:10px; border-radius:5px">
-            <label><b>Ganti Password Staff (Umum):</b></label>
-            <div style="display:flex; gap:10px; margin-top:5px">
-                <input type="text" id="newStaffPass" placeholder="Contoh: staff123" style="margin:0">
-                <button class="btn btn-blue" style="margin:0" onclick="gantiPass('staff')">Update Staff</button>
-            </div>
-         </div>
+          <div class="ticket">
+              <div class="ticket-header">⚙️ Pengaturan</div>
+              <div class="ticket-body">
+                  <label>Jumlah Meja (QR):</label>
+                  <div style="display:flex; gap:5px; margin-bottom:15px">
+                      <input type="number" id="inputTotalMeja" value="${totalMeja}" style="margin:0">
+                      <button class="btn btn-green" onclick="updateTotalMeja()">Save</button>
+                  </div>
+                  <hr>
+                  <div style="margin-top:10px">
+                    <label>Pass Staff:</label>
+                    <div style="display:flex; gap:5px"><input id="newStaffPass" placeholder="${staffPass}" style="margin:0"><button class="btn btn-blue" onclick="gantiPass('staff')">Up</button></div>
+                  </div>
+                  <div style="margin-top:10px">
+                    <label>Pass Owner:</label>
+                    <div style="display:flex; gap:5px"><input id="newAdminPass" placeholder="${adminPass}" style="margin:0"><button class="btn btn-red" onclick="gantiPass('admin')">Up</button></div>
+                  </div>
+              </div>
+          </div>
+          
+          <div class="ticket">
+              <div class="ticket-header">🖨️ Cetak QR</div>
+              <div class="ticket-body" style="text-align:center">
+                  <p>Generate QR untuk ${totalMeja} meja.</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-height:150px; overflow-y:auto">
+                    ${Array.from({length:totalMeja}, (_, i) => i + 1).map(i => {
+                        let link = `${window.location.href.replace("staff.html", "index.html")}?table=${i}`;
+                        return `<a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(link)}" target="_blank" class="btn btn-ghost" style="font-size:12px; border:1px solid #eee">Meja ${i}</a>`
+                    }).join('')}
+                  </div>
+                  <hr>
+                  <button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ HAPUS DATA TRANSAKSI</button>
+              </div>
+          </div>
+      </div>
 
-         <div style="background:#fff; padding:10px; border-radius:5px">
-            <label><b>Ganti Password Admin (Owner):</b></label>
-            <div style="display:flex; gap:10px; margin-top:5px">
-                <input type="text" id="newAdminPass" placeholder="Contoh: bosbesar99" style="margin:0">
-                <button class="btn btn-red" style="margin:0" onclick="gantiPass('admin')">Update Admin</button>
-            </div>
-         </div>
-      </div>`;
-
-      // F. RESET
-      h += `<div class="card" style="border:1px solid red; background:#fff5f5">
-         <h3>⚠️ Reset Data</h3>
-         <button class="btn btn-red" onclick="resetData()">HAPUS SEMUA DATA TRANSAKSI</button>
-      </div>`;
-
-      // G. MODAL RIWAYAT
-      h += `<div id="modalRiwayat" class="modal-overlay">
-          <div class="modal-content">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+      <div id="modalRiwayat" class="modal-overlay">
+          <div class="modal-box">
+             <div style="display:flex; justify-content:space-between; margin-bottom:15px">
                 <h3>📜 Riwayat Transaksi</h3>
-                <button onclick="tutupRiwayat()" style="background:none; border:none; font-size:20px; cursor:pointer">✖</button>
+                <span onclick="tutupRiwayat()" style="cursor:pointer; font-size:24px">×</span>
              </div>
              <div id="listRiwayatContent"></div>
           </div>
-      </div>`;
-
+      </div>
+      `;
       el.innerHTML = h;
-      
       if(document.getElementById("searchAdminInput")) {
         document.getElementById("searchAdminInput").value = adminKeyword;
         cariAdminDOM(adminKeyword);
       }
   }
 
-  // --- ACTIONS ---
-
+  // --- LOGIC ACTIONS (SAMA SEPERTI SEBELUMNYA) ---
   window.cariAdminDOM = (val) => {
       adminKeyword = val.toLowerCase();
-      const items = document.querySelectorAll(".admin-search-item");
-      items.forEach(el => {
-          const nama = el.getAttribute("data-name");
-          el.style.display = nama.includes(adminKeyword) ? "flex" : "none";
+      document.querySelectorAll(".admin-search-item").forEach(el => {
+          el.style.display = el.getAttribute("data-name").includes(adminKeyword) ? "flex" : "none";
       });
   }
-
   window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
-  
   window.tambahMenu = async () => {
-      let n = document.getElementById("newMenuName").value;
-      let p = document.getElementById("newMenuPrice").value;
-      let k = document.getElementById("newMenuCat").value;
-      if(n && p) { 
-          await addDoc(collection(db,"menus"), { nama: n, harga: Number(p), kategori: k }); 
-          alert("Menu tersimpan!"); 
-      } else { alert("Data belum lengkap!"); }
+      let n = document.getElementById("newMenuName").value, p = document.getElementById("newMenuPrice").value, k = document.getElementById("newMenuCat").value;
+      if(n && p) { await addDoc(collection(db,"menus"), { nama: n, harga: Number(p), kategori: k }); alert("Menu tersimpan!"); }
   };
-  
-  window.terimaBayar = async (id) => {
-      if(!confirm("Konfirmasi pembayaran diterima?")) return;
-      await updateDoc(doc(db,"pesanan",id), { status: "Diproses" });
-  };
-  
-  window.hapusMenu = async (id) => {
-      if(!confirm("Yakin hapus menu ini?")) return;
-      await deleteDoc(doc(db, "menus", id));
-  };
-
+  window.terimaBayar = async (id) => { if(confirm("Terima Pembayaran?")) await updateDoc(doc(db,"pesanan",id), { status: "Diproses" }); };
+  window.hapusMenu = async (id) => { if(confirm("Hapus?")) await deleteDoc(doc(db, "menus", id)); };
   window.updateTotalMeja = async () => {
       const jml = document.getElementById("inputTotalMeja").value;
-      if(jml && jml > 0){
-          await setDoc(doc(db, "settings", "toko"), { totalMeja: Number(jml) }, {merge:true});
-          alert("Jumlah meja berhasil diupdate jadi " + jml);
-      } else { alert("Masukkan angka valid"); }
+      if(jml>0) { await setDoc(doc(db, "settings", "toko"), { totalMeja: Number(jml) }, {merge:true}); alert("Updated!"); }
   };
-  
   window.resetData = async () => {
-      if(prompt("Ketik 'HAPUS' untuk menghapus semua data transaksi:") !== "HAPUS") return;
-      pesananList.forEach(async (p) => await deleteDoc(doc(db,"pesanan",p.id)));
-      alert("Data transaksi dibersihkan.");
-  }
-
-  // FUNGSI GANTI DUAL PASSWORD
+      if(prompt("Ketik HAPUS:")==="HAPUS") { pesananList.forEach(async p => await deleteDoc(doc(db,"pesanan",p.id))); alert("Bersih!"); }
+  };
   window.gantiPass = async (tipe) => {
-      const inputID = tipe === 'staff' ? "newStaffPass" : "newAdminPass";
-      const passBaru = document.getElementById(inputID).value;
-      
-      if(!passBaru || passBaru.length < 5) return alert("Password minimal 5 karakter!");
-      
-      if(confirm(`Yakin ubah password ${tipe.toUpperCase()} jadi "${passBaru}"?`)){
-          // Update partial (merge: true) supaya tidak menimpa password yang satunya
-          const updateData = {};
-          if(tipe === 'staff') updateData.staffPassword = passBaru;
-          else updateData.adminPassword = passBaru;
-          
-          await setDoc(doc(db, "settings", "auth"), updateData, { merge: true });
-          alert(`Password ${tipe} berhasil diupdate!`);
+      const val = document.getElementById(tipe==='staff'?"newStaffPass":"newAdminPass").value;
+      if(val.length<5) return alert("Min 5 karakter");
+      if(confirm("Ganti Password?")) {
+          const upd = {}; upd[tipe+'Password'] = val;
+          await setDoc(doc(db, "settings", "auth"), upd, { merge: true }); alert("Sukses!");
       }
   };
-
   window.bukaRiwayat = () => {
       const modal = document.getElementById("modalRiwayat");
       const content = document.getElementById("listRiwayatContent");
-      const doneOrders = pesananList.filter(p => p.status === 'Selesai');
-      
-      if(doneOrders.length === 0){
-          content.innerHTML = "<p style='text-align:center'>Belum ada transaksi selesai.</p>";
-      } else {
-          let html = "";
-          doneOrders.forEach(p => {
-              html += `<div style="border-bottom:1px solid #eee; padding:10px 0;">
-                  <div style="display:flex; justify-content:space-between">
-                      <b>Meja ${p.meja}</b>
-                      <span>${p.tanggalString || '-'}</span>
-                  </div>
-                  <div style="color:#666; font-size:12px; margin:5px 0">
-                      ${p.items.map(i => `${i.nama} x${i.qty}`).join(', ')}
-                  </div>
-                  <div style="text-align:right; font-weight:bold; color:#27ae60">
-                      Total: Rp ${p.total.toLocaleString()}
-                  </div>
-              </div>`;
-          });
-          content.innerHTML = html;
-      }
+      const done = pesananList.filter(p => p.status === 'Selesai');
+      content.innerHTML = done.length ? done.map(p => `
+        <div style="border-bottom:1px solid #eee; padding:10px 0">
+            <div style="display:flex; justify-content:space-between"><b>Meja ${p.meja}</b> <small>${p.tanggalString}</small></div>
+            <div style="color:#666; font-size:12px">${p.items.map(i=>`${i.nama} x${i.qty}`).join(', ')}</div>
+            <div style="text-align:right; color:var(--success)">Rp ${p.total.toLocaleString()}</div>
+        </div>`).join('') : "Kosong";
       modal.style.display = "flex";
   }
-
-  window.tutupRiwayat = () => {
-      document.getElementById("modalRiwayat").style.display = "none";
-  }
-
+  window.tutupRiwayat = () => document.getElementById("modalRiwayat").style.display = "none";
 </script>
 </body>
 </html>
