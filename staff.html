@@ -6,22 +6,9 @@
 <title>Sistem Staff Resto</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { 
-    --primary: #2d3436; 
-    --accent: #0984e3; 
-    --success: #00b894; 
-    --warning: #fdcb6e;
-    --danger: #d63031;
-    --bg: #dfe6e9;
-    --card: #ffffff;
-    --radius: 12px;
-    --shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  
+  :root { --primary: #2d3436; --accent: #0984e3; --success: #00b894; --warning: #fdcb6e; --danger: #d63031; --bg: #dfe6e9; --card: #ffffff; --radius: 12px; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #2d3436; }
-
-  /* UTILS */
   .hidden { display: none !important; }
   .btn { border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; }
   .btn:active { transform: scale(0.96); }
@@ -29,145 +16,69 @@
   .btn-green { background: var(--success); color: #fff; }
   .btn-red { background: var(--danger); color: #fff; }
   .btn-ghost { background: transparent; color: #636e72; border: 1px solid #b2bec3; }
-  
-  input, select { 
-    width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; 
-    margin-bottom: 10px; font-family: inherit; outline: none; transition: 0.3s;
-  }
+  input, select { width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; margin-bottom: 10px; font-family: inherit; outline: none; transition: 0.3s; }
   input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.1); }
-
-  /* LOGIN */
   .login-wrapper { display: flex; height: 90vh; justify-content: center; align-items: center; }
   .login-card { background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
   .brand-logo { font-size: 40px; margin-bottom: 10px; display: block; }
-
-  /* DASHBOARD GRID */
   .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
-  .role-card { background: var(--card); padding: 20px; border-radius: 16px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
+  .role-card { background: var(--card); padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
   .role-card:hover { transform: translateY(-5px); border-color: var(--accent); }
   .role-icon { font-size: 32px; display: block; margin-bottom: 10px; }
   .role-title { font-weight: 600; font-size: 16px; }
   .role-desc { font-size: 12px; color: #636e72; }
-
-  /* LAYOUT */
-  .top-bar { background: var(--card); padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .top-bar { background: var(--card); padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
   .page-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-
-  /* TICKET SYSTEM */
   .ticket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-  .ticket { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; position: relative; }
+  .ticket { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; }
   .ticket-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; border-bottom: 1px dashed #dfe6e9; }
   .ticket-body { padding: 15px; flex: 1; }
   .ticket-items { list-style: none; padding: 0; margin: 0; font-size: 14px; }
   .ticket-items li { margin-bottom: 5px; display: flex; justify-content: space-between; }
   .ticket-note { background: #fff5f5; color: #c0392b; font-size: 12px; padding: 5px; border-radius: 4px; margin-top: 10px; }
   .ticket-footer { padding: 12px 15px; background: #f8f9fa; border-top: 1px solid #eee; text-align: right; }
-  
-  .bg-unpaid { background: #ffeaa7; color: #d35400; }
-  .bg-process { background: #74b9ff; color: #0984e3; }
-  .bg-ready { background: #55efc4; color: #00b894; }
-
-  /* ADMIN STATS */
+  .bg-unpaid { background: #ffeaa7; color: #d35400; } .bg-process { background: #74b9ff; color: #0984e3; } .bg-ready { background: #55efc4; color: #00b894; }
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
   .stat-card { background: var(--primary); color: #fff; padding: 20px; border-radius: 16px; position: relative; overflow: hidden; cursor: pointer; transition: 0.2s; }
-  .stat-card:hover { filter: brightness(1.1); }
-  .stat-val { font-size: 24px; font-weight: 700; display: block; }
-  .stat-label { font-size: 12px; opacity: 0.8; }
-  
+  .stat-val { font-size: 24px; font-weight: 700; display: block; } .stat-label { font-size: 12px; opacity: 0.8; }
   .menu-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; }
-
-  /* --- MODAL SYSTEM (NEW) --- */
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; backdrop-filter: blur(3px); }
-  
-  /* Modal Content Box */
   .modal-box { background:#fff; width:90%; max-width:500px; max-height:85vh; border-radius:16px; padding:25px; overflow-y:auto; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; }
-  
-  /* Alert/Confirm Box specific */
   .modal-popup { background:#fff; width:85%; max-width:350px; border-radius: 20px; padding:25px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-
-  @keyframes popUp { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
-  @keyframes popIn { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
-
+  @keyframes popUp { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} } @keyframes popIn { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
   .btn-sys { padding: 12px; border-radius: 10px; border: 0; font-weight: 600; font-size: 14px; flex: 1; cursor: pointer; }
-  .btn-sys-primary { background: var(--accent); color: #fff; }
-  .btn-sys-danger { background: var(--danger); color: #fff; }
-  .btn-sys-ghost { background: #f1f2f6; color: #555; }
-
-  .scroll-h::-webkit-scrollbar { display: none; }
-  .scroll-h { -ms-overflow-style: none; scrollbar-width: none; }
+  .btn-sys-primary { background: var(--accent); color: #fff; } .btn-sys-danger { background: var(--danger); color: #fff; } .btn-sys-ghost { background: #f1f2f6; color: #555; }
+  .scroll-h::-webkit-scrollbar { display: none; } .scroll-h { -ms-overflow-style: none; scrollbar-width: none; }
+  .menu-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-right: 10px; background: #eee; }
 </style>
 </head>
 <body>
 
 <div id="loginPage" class="login-wrapper">
-    <div class="login-card">
-        <span class="brand-logo">🔒</span>
-        <h2 style="margin:0">Staff Portal</h2>
-        <p style="color:#636e72; margin-bottom:30px">Restoran Modern System</p>
-        <input type="password" id="passInput" placeholder="Masukkan Kode Akses...">
-        <button class="btn btn-blue" style="width:100%; padding:15px; font-size:16px" onclick="cekLogin()">Masuk Dashboard</button>
-        <p style="margin-top:20px; font-size:12px; color:#b2bec3" id="statusPass">Menghubungkan Server...</p>
-    </div>
+    <div class="login-card"><span class="brand-logo">🔒</span><h2 style="margin:0">Staff Portal</h2><p style="color:#636e72; margin-bottom:30px">Restoran Modern System</p><input type="password" id="passInput" placeholder="Masukkan Kode Akses..."><button class="btn btn-blue" style="width:100%; padding:15px; font-size:16px" onclick="cekLogin()">Masuk Dashboard</button><p style="margin-top:20px; font-size:12px; color:#b2bec3" id="statusPass">Menghubungkan Server...</p></div>
 </div>
 
 <div id="dashboardPage" class="container hidden" style="max-width:800px; margin:0 auto">
-    <div class="dash-header">
-        <div><h2 style="margin:0">Halo, Team! 👋</h2><small style="color:#636e72">Selamat bertugas!</small></div>
-        <button class="btn btn-ghost" onclick="logout()">Keluar</button>
-    </div>
+    <div class="dash-header"><div><h2 style="margin:0">Halo, Team! 👋</h2><small style="color:#636e72">Selamat bertugas!</small></div><button class="btn btn-ghost" onclick="logout()">Keluar</button></div>
     <div class="role-grid">
-        <div class="role-card" onclick="bukaHalaman('kasir')">
-            <span class="role-icon">🖥️</span>
-            <div class="role-title">Kasir</div>
-            <div class="role-desc">Pembayaran & Order</div>
-        </div>
-        <div class="role-card" onclick="bukaHalaman('dapur')">
-            <span class="role-icon">👨‍🍳</span>
-            <div class="role-title">Dapur</div>
-            <div class="role-desc">Antrian Masak</div>
-        </div>
-        <div class="role-card" onclick="bukaHalaman('admin')" style="border-top: 3px solid var(--danger)">
-            <span class="role-icon">⚙️</span>
-            <div class="role-title">Owner</div>
-            <div class="role-desc">Menu & Laporan</div>
-        </div>
+        <div class="role-card" onclick="bukaHalaman('kasir')"><span class="role-icon">🖥️</span><div class="role-title">Kasir</div><div class="role-desc">Pembayaran & Order</div></div>
+        <div class="role-card" onclick="bukaHalaman('dapur')"><span class="role-icon">👨‍🍳</span><div class="role-title">Dapur</div><div class="role-desc">Antrian Masak</div></div>
+        <div class="role-card" onclick="bukaHalaman('admin')" style="border-top: 3px solid var(--danger)"><span class="role-icon">⚙️</span><div class="role-title">Owner</div><div class="role-desc">Menu & Laporan</div></div>
     </div>
 </div>
 
 <div id="fiturPage" class="container hidden" style="max-width:1000px; margin:0 auto">
-    <div class="top-bar">
-        <div class="page-title" id="pageTitle">Halaman</div>
-        <button class="btn btn-ghost" onclick="kembaliKeDash()">⬅ Menu Utama</button>
-    </div>
-    <div id="kontenFitur"></div>
+    <div class="top-bar"><div class="page-title" id="pageTitle">Halaman</div><button class="btn btn-ghost" onclick="kembaliKeDash()">⬅ Menu Utama</button></div><div id="kontenFitur"></div>
 </div>
 
-<div id="sysModal" class="modal-overlay">
-    <div class="modal-popup" onclick="event.stopPropagation()">
-        <h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3>
-        <p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p>
-        <input id="sysInput" style="display:none; text-align:center; background:#f1f2f6" placeholder="...">
-        <div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div>
-    </div>
-</div>
-
-<div id="modalRiwayat" class="modal-overlay">
-    <div class="modal-box">
-       <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center">
-          <h3>📜 Riwayat Transaksi</h3>
-          <button class="btn btn-ghost" onclick="tutupRiwayat()">✕</button>
-       </div>
-       <div id="listRiwayatContent"></div>
-    </div>
-</div>
+<div id="sysModal" class="modal-overlay"><div class="modal-popup" onclick="event.stopPropagation()"><h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3><p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p><input id="sysInput" style="display:none; text-align:center; background:#f1f2f6" placeholder="..."><div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div></div></div>
+<div id="modalRiwayat" class="modal-overlay"><div class="modal-box"><div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center"><h3>📜 Riwayat Transaksi</h3><button class="btn btn-ghost" onclick="tutupRiwayat()">✕</button></div><div id="listRiwayatContent"></div></div></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // --- CONFIG ---
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
     authDomain: "pemesanan-restoran.firebaseapp.com",
@@ -181,119 +92,35 @@
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  // --- HELPER SYSTEM MODALS (CUSTOM PROMISE BASED) ---
-  window.appAlert = (msg) => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Info Sistem";
-          document.getElementById('sysMsg').innerText = msg;
-          document.getElementById('sysInput').style.display = 'none';
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`;
-          document.getElementById('sysModal').style.display = 'flex';
-          document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
-      });
-  };
+  // --- HELPERS ---
+  window.appAlert = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Info Sistem"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
+  window.appConfirm = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Konfirmasi"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); }; document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
+  window.appPrompt = (msg, placeholder="") => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Input Data"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.type = "text"; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnCancel">Batal</button><button class="btn-sys btn-sys-primary" id="btnSubmit">Kirim</button>`; document.getElementById('sysModal').style.display = 'flex'; inp.focus(); document.getElementById('btnCancel').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(null); }; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
+  window.appPassword = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Keamanan"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = "***"; inp.type = "password"; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnCancel">Batal</button><button class="btn-sys btn-sys-danger" id="btnSubmit">Akses</button>`; document.getElementById('sysModal').style.display = 'flex'; inp.focus(); document.getElementById('btnCancel').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(null); }; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
 
-  window.appConfirm = (msg) => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Konfirmasi";
-          document.getElementById('sysMsg').innerText = msg;
-          document.getElementById('sysInput').style.display = 'none';
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`;
-          document.getElementById('sysModal').style.display = 'flex';
-          document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); };
-          document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); };
-      });
-  };
+  let pesananList = []; let menus = []; let totalMeja = 5; let adminKeyword = ""; let staffPass = "staff123"; let adminPass = "admin123";
 
-  window.appPrompt = (msg, placeholder="") => {
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Input Data";
-          document.getElementById('sysMsg').innerText = msg;
-          const inp = document.getElementById('sysInput');
-          inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.type = "text";
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnCancel">Batal</button><button class="btn-sys btn-sys-primary" id="btnSubmit">Kirim</button>`;
-          document.getElementById('sysModal').style.display = 'flex'; inp.focus();
-          document.getElementById('btnCancel').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(null); };
-          document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); };
-      });
-  };
-
-  window.appPassword = (msg) => { // Prompt khusus password
-      return new Promise(resolve => {
-          document.getElementById('sysTitle').innerText = "Keamanan";
-          document.getElementById('sysMsg').innerText = msg;
-          const inp = document.getElementById('sysInput');
-          inp.style.display = 'block'; inp.value = ""; inp.placeholder = "***"; inp.type = "password";
-          document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnCancel">Batal</button><button class="btn-sys btn-sys-danger" id="btnSubmit">Akses</button>`;
-          document.getElementById('sysModal').style.display = 'flex'; inp.focus();
-          document.getElementById('btnCancel').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(null); };
-          document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); };
-      });
-  };
-
-  // --- DATA ---
-  let pesananList = []; let menus = []; let totalMeja = 5; 
-  let adminKeyword = ""; let staffPass = "staff123"; let adminPass = "admin123";
-
-  // --- INIT ---
   initListeners();
   function initListeners(){
-      onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
-          pesananList = snap.docs.map(d => ({id:d.id, ...d.data()})); refreshCurrentView();
-      });
-      onSnapshot(collection(db, "menus"), (snap)=>{
-          menus = snap.docs.map(d => ({id:d.id, ...d.data()})); refreshCurrentView();
-      });
+      onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => { pesananList = snap.docs.map(d => ({id:d.id, ...d.data()})); refreshCurrentView(); });
+      onSnapshot(collection(db, "menus"), (snap)=>{ menus = snap.docs.map(d => ({id:d.id, ...d.data()})); refreshCurrentView(); });
       onSnapshot(doc(db, "settings", "toko"), (s) => { if(s.exists()) totalMeja = s.data().totalMeja || 5; });
-      onSnapshot(doc(db, "settings", "auth"), (s) => {
-          const statusEl = document.getElementById("statusPass");
-          if (s.exists()) {
-              staffPass = s.data().staffPassword || "staff123";
-              adminPass = s.data().adminPassword || "admin123";
-              if(statusEl) statusEl.innerText = "● Sistem Online";
-          } else {
-              setDoc(doc(db, "settings", "auth"), { staffPassword: "staff123", adminPassword: "admin123" });
-              if(statusEl) statusEl.innerText = "● Default Mode";
-          }
-      });
+      onSnapshot(doc(db, "settings", "auth"), (s) => { const st = document.getElementById("statusPass"); if (s.exists()) { staffPass = s.data().staffPassword; adminPass = s.data().adminPassword; if(st) st.innerText = "● Sistem Online"; } else { setDoc(doc(db, "settings", "auth"), { staffPassword: "staff123", adminPassword: "admin123" }); if(st) st.innerText = "● Default Mode"; } });
   }
 
-  // --- ACTIONS (ALL ASYNC NOW) ---
-  window.cekLogin = async () => {
-      const p = document.getElementById("passInput").value;
-      if(p === staffPass || p === adminPass){ 
-          document.getElementById("loginPage").classList.add("hidden");
-          document.getElementById("dashboardPage").classList.remove("hidden");
-      } else { await appAlert("Password Salah!"); }
-  };
+  window.cekLogin = async () => { const p = document.getElementById("passInput").value; if(p === staffPass || p === adminPass){ document.getElementById("loginPage").classList.add("hidden"); document.getElementById("dashboardPage").classList.remove("hidden"); } else { await appAlert("Password Salah!"); } };
   window.logout = () => location.reload();
   window.kembaliKeDash = () => { document.getElementById("fiturPage").classList.add("hidden"); document.getElementById("dashboardPage").classList.remove("hidden"); };
-
-  window.bukaHalaman = async (role) => {
-      if(role === 'admin') {
-          let input = await appPassword("Masukkan Password Owner:");
-          if(input !== adminPass) return await appAlert("Akses Ditolak.");
-      }
-      document.getElementById("dashboardPage").classList.add("hidden");
-      document.getElementById("fiturPage").classList.remove("hidden");
-      renderFitur(role);
-  };
-
-  function refreshCurrentView() {
-      const mode = document.getElementById("kontenFitur").getAttribute("data-mode");
-      if(mode) renderFitur(mode);
-  }
-
+  window.bukaHalaman = async (role) => { if(role === 'admin') { let input = await appPassword("Masukkan Password Owner:"); if(input !== adminPass) return await appAlert("Akses Ditolak."); } document.getElementById("dashboardPage").classList.add("hidden"); document.getElementById("fiturPage").classList.remove("hidden"); renderFitur(role); };
+  function refreshCurrentView() { const mode = document.getElementById("kontenFitur").getAttribute("data-mode"); if(mode) renderFitur(mode); }
+  
   function renderFitur(role){
-      const el = document.getElementById("kontenFitur");
-      const title = document.getElementById("pageTitle");
-      el.setAttribute("data-mode", role); 
+      const el = document.getElementById("kontenFitur"); const title = document.getElementById("pageTitle"); el.setAttribute("data-mode", role); 
       if(role === 'dapur') { title.innerText = "👨‍🍳 Layar Dapur"; renderDapur(el); }
       else if(role === 'kasir') { title.innerText = "🖥️ Kasir Station"; renderKasir(el); }
       else if(role === 'admin') { title.innerText = "📊 Admin Dashboard"; renderAdmin(el); }
   }
 
-  // 1. DAPUR
   function renderDapur(el){
       const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
       if(!tasks.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">😴 Tidak ada antrian masak</div>`; return; }
@@ -310,7 +137,6 @@
       h += `</div>`; el.innerHTML = h;
   }
 
-  // 2. KASIR
   function renderKasir(el){
       const orders = pesananList.filter(p => p.status !== 'Selesai');
       if(!orders.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">✨ Semua transaksi beres</div>`; return; }
@@ -326,7 +152,6 @@
       h += `</div>`; el.innerHTML = h;
   }
 
-  // 3. ADMIN
   function renderAdmin(el){
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
@@ -339,15 +164,32 @@
           <div class="ticket" style="grid-column: span 2">
               <div class="ticket-header">🍔 Manajemen Menu</div>
               <div class="ticket-body">
-                 <div style="display:flex; gap:10px; margin-bottom:15px">
-                    <input id="newMenuName" placeholder="Nama..." style="flex:2; margin:0">
-                    <select id="newMenuCat" style="flex:1; margin:0"><option value="Makanan">Makanan</option><option value="Minuman">Minuman</option><option value="Cemilan">Cemilan</option></select>
-                    <input id="newMenuPrice" type="number" placeholder="Rp" style="flex:1; margin:0">
-                    <button class="btn btn-blue" onclick="tambahMenu()">+</button>
+                 <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #eee; margin-bottom:15px">
+                    <label style="font-size:12px; font-weight:bold; color:#666">Tambah Menu Baru:</label>
+                    <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px">
+                        <input id="newMenuName" placeholder="Nama Menu..." style="margin:0">
+                        <div style="display:flex; gap:5px">
+                            <select id="newMenuCat" style="flex:1; margin:0"><option value="Makanan">Makanan</option><option value="Minuman">Minuman</option><option value="Cemilan">Cemilan</option></select>
+                            <input id="newMenuPrice" type="number" placeholder="Harga (Rp)" style="flex:1; margin:0">
+                        </div>
+                        <input id="newMenuImg" placeholder="Link Gambar (URL) - Opsional" style="margin:0; font-size:12px">
+                        <button class="btn btn-blue" onclick="tambahMenu()" style="margin-top:5px">Simpan Menu</button>
+                    </div>
                  </div>
+
                  <input placeholder="🔍 Cari menu..." onkeyup="cariAdminDOM(this.value)" id="searchAdminInput" style="background:#f1f2f6">
                  <div style="max-height:250px; overflow-y:auto; margin-top:10px">
-                    ${menus.map(m => `<div class="menu-row admin-search-item" data-name="${m.nama.toLowerCase()}"><div><b>${m.nama}</b> <small class="btn" style="padding:2px 5px; font-size:10px; background:#eee">${m.kategori}</small></div><div><b style="margin-right:10px">Rp ${m.harga.toLocaleString()}</b><button class="btn btn-red" style="padding:5px 10px" onclick="hapusMenu('${m.id}')">×</button></div></div>`).join('')}
+                    ${menus.map(m => `
+                        <div class="menu-row admin-search-item" data-name="${m.nama.toLowerCase()}">
+                            <div style="display:flex; align-items:center">
+                                <img src="${m.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png'}" class="menu-thumb">
+                                <div><b>${m.nama}</b> <small class="btn" style="padding:2px 5px; font-size:10px; background:#eee">${m.kategori}</small></div>
+                            </div>
+                            <div>
+                                <b style="margin-right:10px">Rp ${m.harga.toLocaleString()}</b>
+                                <button class="btn btn-red" style="padding:5px 10px" onclick="hapusMenu('${m.id}')">×</button>
+                            </div>
+                        </div>`).join('')}
                  </div>
               </div>
           </div>
@@ -366,21 +208,19 @@
                   <hr><button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ HAPUS DATA</button>
               </div>
           </div>
-      </div>
-      `;
+      </div>`;
       el.innerHTML = h;
       if(document.getElementById("searchAdminInput")) { document.getElementById("searchAdminInput").value = adminKeyword; cariAdminDOM(adminKeyword); }
   }
 
-  // --- ACTIONS (USING NEW MODALS) ---
   window.cariAdminDOM = (val) => {
       adminKeyword = val.toLowerCase();
       document.querySelectorAll(".admin-search-item").forEach(el => { el.style.display = el.getAttribute("data-name").includes(adminKeyword) ? "flex" : "none"; });
   }
   window.ubahStatus = async (id, st) => { await updateDoc(doc(db,"pesanan",id), {status:st}); };
   window.tambahMenu = async () => {
-      let n = document.getElementById("newMenuName").value, p = document.getElementById("newMenuPrice").value, k = document.getElementById("newMenuCat").value;
-      if(n && p) { await addDoc(collection(db,"menus"), { nama: n, harga: Number(p), kategori: k }); await appAlert("Menu tersimpan!"); }
+      let n = document.getElementById("newMenuName").value, p = document.getElementById("newMenuPrice").value, k = document.getElementById("newMenuCat").value, img = document.getElementById("newMenuImg").value;
+      if(n && p) { await addDoc(collection(db,"menus"), { nama: n, harga: Number(p), kategori: k, gambar: img }); await appAlert("Menu tersimpan!"); }
   };
   window.terimaBayar = async (id) => { if(await appConfirm("Terima Pembayaran?")) await updateDoc(doc(db,"pesanan",id), { status: "Diproses" }); };
   window.hapusMenu = async (id) => { if(await appConfirm("Hapus menu ini?")) await deleteDoc(doc(db, "menus", id)); };
