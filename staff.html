@@ -16,7 +16,7 @@
   .hidden{ display:none; }
   .menu-item{ padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
 
-  /* STYLE UNTUK MODAL RIWAYAT */
+  /* STYLE MODAL RIWAYAT */
   .modal-overlay {
       display:none; position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;
@@ -36,6 +36,7 @@
     <p>Masukkan Password Sistem</p>
     <input type="password" id="passInput" placeholder="Password...">
     <button class="btn btn-blue" style="width:100%" onclick="cekLogin()">Masuk</button>
+    <p><small style="color:#888" id="statusPass">Memuat keamanan...</small></p>
 </div>
 
 <div id="dashboardPage" class="container hidden" style="max-width:800px; margin:0 auto">
@@ -44,7 +45,7 @@
         <p>Silakan pilih mode kerja:</p>
         <button class="btn btn-green" onclick="bukaHalaman('kasir')">🖥️ Kasir</button>
         <button class="btn btn-blue" onclick="bukaHalaman('dapur')">👨‍🍳 Dapur</button>
-        <button class="btn btn-red" onclick="bukaHalaman('admin')">⚙️ Admin (QR)</button>
+        <button class="btn btn-red" onclick="bukaHalaman('admin')">🔒 Admin (QR)</button>
     </div>
 </div>
 
@@ -76,32 +77,14 @@
   let menus = [];
   let totalMeja = 5; 
   let adminKeyword = ""; 
+  
+  // VARIABLE PASSWORD SISTEM (Default admin123 jika DB kosong)
+  let systemPass = "admin123"; 
 
-  // --- LOGIKA LOGIN ---
-  window.cekLogin = () => {
-      const p = document.getElementById("passInput").value;
-      if(p === "admin123"){ 
-          document.getElementById("loginPage").classList.add("hidden");
-          document.getElementById("dashboardPage").classList.remove("hidden");
-          initListeners(); 
-      } else {
-          alert("Password salah!");
-      }
-  };
+  // --- INIT LISTENERS (SEKARANG DILAKUKAN DI AWAL) ---
+  // Kita perlu load password DULUAN sebelum user login
+  initListeners();
 
-  // --- NAVIGASI ---
-  window.kembaliKeDash = () => {
-      document.getElementById("fiturPage").classList.add("hidden");
-      document.getElementById("dashboardPage").classList.remove("hidden");
-  };
-
-  window.bukaHalaman = (role) => {
-      document.getElementById("dashboardPage").classList.add("hidden");
-      document.getElementById("fiturPage").classList.remove("hidden");
-      renderFitur(role);
-  };
-
-  // --- DATA LISTENER ---
   function initListeners(){
       // 1. Pesanan
       onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
@@ -120,7 +103,52 @@
               refreshCurrentView();
           }
       });
+      
+      // 4. LISTENER PASSWORD (KEAMANAN)
+      onSnapshot(doc(db, "settings", "auth"), (docSnap) => {
+          const statusEl = document.getElementById("statusPass");
+          if (docSnap.exists()) {
+              systemPass = docSnap.data().password;
+              if(statusEl) statusEl.innerText = "Sistem Siap.";
+          } else {
+              // Jika belum ada di DB, kita buat defaultnya
+              setDoc(doc(db, "settings", "auth"), { password: "admin123" });
+              systemPass = "admin123";
+              if(statusEl) statusEl.innerText = "Sistem Siap (Default).";
+          }
+      });
   }
+
+  // --- LOGIKA LOGIN (UPDATE: CEK KE VARIABLE DB) ---
+  window.cekLogin = () => {
+      const p = document.getElementById("passInput").value;
+      if(p === systemPass){ 
+          document.getElementById("loginPage").classList.add("hidden");
+          document.getElementById("dashboardPage").classList.remove("hidden");
+      } else {
+          alert("Password salah!");
+      }
+  };
+
+  // --- NAVIGASI (UPDATE: SECURITY CHECK UNTUK ADMIN) ---
+  window.kembaliKeDash = () => {
+      document.getElementById("fiturPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.remove("hidden");
+  };
+
+  window.bukaHalaman = (role) => {
+      // FITUR BARU: Jika mau masuk Admin, tanya password lagi
+      if(role === 'admin') {
+          let cekUlang = prompt("🔒 Kemanan Ganda: Masukkan Password Sistem Lagi");
+          if(cekUlang !== systemPass) {
+              return alert("Akses Ditolak!");
+          }
+      }
+
+      document.getElementById("dashboardPage").classList.add("hidden");
+      document.getElementById("fiturPage").classList.remove("hidden");
+      renderFitur(role);
+  };
 
   function refreshCurrentView() {
       const mode = document.getElementById("kontenFitur").getAttribute("data-mode");
@@ -199,12 +227,12 @@
       el.innerHTML = h;
   }
 
-  // 3. ADMIN
+  // 3. ADMIN (FULL FEATURES)
   function renderAdmin(el){
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
       
-      // A. DASHBOARD (Updated with OnClick)
+      // A. DASHBOARD
       let h = `<div class="card"><h3>📊 Dashboard Owner</h3>
         <div style="display:flex; gap:10px; margin-bottom:10px">
             <div style="flex:1; background:#3498db; color:#fff; padding:15px; border-radius:8px; text-align:center">
@@ -253,7 +281,7 @@
         </div>
       </div>`;
 
-      // C. SETUP MEJA
+      // C. PENGATURAN MEJA
       h += `<div class="card">
           <h3>🪑 Pengaturan Meja</h3>
           <p>Total meja saat ini:</p>
@@ -276,13 +304,24 @@
       }
       h += `</div></div>`;
 
-      // E. RESET
-      h += `<div class="card" style="border:1px solid red; background:#fff5f5">
-         <h3>⚠️ Reset Data</h3>
-         <button class="btn btn-red" onclick="resetData()">HAPUS SEMUA DATA</button>
+      // E. FITUR KEAMANAN (GANTI PASSWORD) - BARU!
+      h += `<div class="card" style="border:1px solid #2980b9; background:#ecf0f1">
+         <h3 style="color:#2980b9">🔒 Manajemen Akses</h3>
+         <p>Ganti password login untuk Staff & Admin:</p>
+         <div style="display:flex; gap:10px">
+             <input type="text" id="newPassInput" placeholder="Password Baru" style="margin:0">
+             <button class="btn btn-blue" style="margin:0" onclick="gantiPassword()">Update Password</button>
+         </div>
+         <p><small style="color:red">*Harap diingat baik-baik. Jika lupa, hubungi database administrator.</small></p>
       </div>`;
 
-      // F. MODAL RIWAYAT (HIDDEN)
+      // F. RESET
+      h += `<div class="card" style="border:1px solid red; background:#fff5f5">
+         <h3>⚠️ Reset Data</h3>
+         <button class="btn btn-red" onclick="resetData()">HAPUS SEMUA DATA TRANSAKSI</button>
+      </div>`;
+
+      // G. MODAL RIWAYAT
       h += `<div id="modalRiwayat" class="modal-overlay">
           <div class="modal-content">
              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
@@ -348,12 +387,22 @@
       alert("Data transaksi dibersihkan.");
   }
 
-  // --- FITUR RIWAYAT (BARU) ---
+  // FUNGSI GANTI PASSWORD (BARU)
+  window.gantiPassword = async () => {
+      const passBaru = document.getElementById("newPassInput").value;
+      if(!passBaru) return alert("Password tidak boleh kosong!");
+      if(passBaru.length < 5) return alert("Password terlalu pendek (min 5 karakter)!");
+      
+      if(confirm(`Yakin ubah password jadi "${passBaru}"?`)){
+          await setDoc(doc(db, "settings", "auth"), { password: passBaru });
+          alert("Password Berhasil Diupdate! Sistem akan menggunakan password baru.");
+      }
+  };
+
+  // FITUR RIWAYAT
   window.bukaRiwayat = () => {
       const modal = document.getElementById("modalRiwayat");
       const content = document.getElementById("listRiwayatContent");
-      
-      // Filter hanya yang selesai
       const doneOrders = pesananList.filter(p => p.status === 'Selesai');
       
       if(doneOrders.length === 0){
