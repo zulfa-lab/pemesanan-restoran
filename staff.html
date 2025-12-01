@@ -292,6 +292,9 @@
       const orders = pesananList.filter(p => p.status !== 'Selesai');
       if(!orders.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">✨ Semua transaksi beres</div>`; return; }
       let h = `<div class="ticket-grid">`;
+      let isUnpaid = p.status === "Menunggu Pembayaran";
+  // Cek metode bayar (kalau data lama ga ada metode, anggap tunai)
+      let payMethod = p.metodeBayar || "Tunai";
       orders.forEach(p => {
           // Panggil Method Class isPaid()
           let isUnpaid = !p.isPaid(); 
@@ -409,3 +412,4 @@
 </script>
 </body>
 </html>
+
