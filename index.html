@@ -101,7 +101,46 @@
 <div id="orderDetailModal" class="modal-overlay" onclick="closeDetail(event)" style="align-items: flex-end;"><div class="modal-sheet" onclick="event.stopPropagation()"><div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3 style="margin:0">Rincian Pesanan</h3><span onclick="closeDetail()" style="cursor:pointer; font-size:20px">✕</span></div><div id="orderDetailContent"></div><button onclick="closeDetail()" style="width:100%; background:#eee; color:#333; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:14px">Tutup</button></div></div>
 <div id="sysModal" class="modal-overlay"><div class="modal-popup" onclick="event.stopPropagation()"><h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3><p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p><input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center"><div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div></div></div>
 <div id="imgModal" class="modal-overlay" onclick="closeImage()"><div class="modal-image-box" onclick="event.stopPropagation()"><div class="close-img-btn" onclick="closeImage()">✕</div><img id="previewImage" src=""></div></div>
+// ini buat pembayaran
 
+  <div id="paymentModal" class="modal-overlay" onclick="closePayment()">
+    <div class="modal-popup" onclick="event.stopPropagation()" style="text-align:left">
+        <h3 style="margin-top:0">💳 Pilih Pembayaran</h3>
+        <p style="color:#666; font-size:13px; margin-bottom:15px">Total Tagihan: <b id="payTotalDisplay" style="color:var(--primary); font-size:16px"></b></p>
+        
+        <div onclick="processPayment('Tunai')" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer; margin-bottom:10px; transition:0.2s" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+            <span style="font-size:24px">💵</span>
+            <div>
+                <div style="font-weight:600">Tunai (Kasir)</div>
+                <div style="font-size:11px; color:#aaa">Bayar manual di meja kasir</div>
+            </div>
+        </div>
+
+        <div onclick="showQRIS()" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+            <span style="font-size:24px">📱</span>
+            <div>
+                <div style="font-weight:600">QRIS / E-Wallet</div>
+                <div style="font-size:11px; color:#aaa">Scan pakai GoPay, OVO, Dana</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="qrisModal" class="modal-overlay">
+    <div class="modal-popup" onclick="event.stopPropagation()">
+        <h3 style="margin:0">Scan QRIS</h3>
+        <p style="font-size:12px; color:#666">Total: <b id="qrisTotalDisplay"></b></p>
+        
+        <img id="qrisImage" src="" style="width:200px; height:200px; margin:10px 0; border:1px solid #eee; padding:10px; border-radius:8px">
+        
+        <p style="font-size:11px; color:#aaa; margin-top:0">Scan menggunakan aplikasi pembayaran apa saja.</p>
+        
+        <button class="btn-sys btn-sys-primary" onclick="processPayment('QRIS')">✅ Simulasi Bayar Sukses</button>
+        <button class="btn-sys btn-sys-ghost" onclick="closeQris()" style="margin-top:10px">Batal</button>
+    </div>
+</div>
+
+  
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -277,12 +316,89 @@
 
   window.addToCart = (id, nama, harga) => { const exist = cart.find(c => c.id === id); if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1}); renderFloatingBar(); showToast(`"${nama}" masuk keranjang`); };
   window.updateQty = (id, delta) => { const item = cart.find(c => c.id === id); if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(c => c.id !== id); renderCartList(); renderFloatingBar(); } };
+  // --- LOGIKA PEMBAYARAN BARU ---
   
-  window.checkout = async () => { if(!cart.length) return; if(!await appConfirm("Kirim pesanan?")) return; const catatan = document.getElementById("catatan").value; const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0); try { await addDoc(collection(db, "pesanan"), { meja, items: cart, catatan, total, status: "Menunggu Pembayaran", createdAt: serverTimestamp(), tanggalString: new Date().toLocaleString("id-ID") }); await appAlert("Pesanan Terkirim! Mohon segera bayar di kasir."); cart = []; toggleCart(); renderFloatingBar(); } catch(e){ await appAlert("Error: " + e.message); } };
-  
+  // 1. Klik Pesan -> Buka Pilihan Pembayaran
+  window.checkout = async () => {
+    if(!cart.length) return showToast("Keranjang kosong!");
+    
+    // Hitung total dulu buat ditampilkan
+    const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
+    document.getElementById("payTotalDisplay").innerText = "Rp " + total.toLocaleString();
+    
+    // Tampilkan Modal Pilihan
+    document.getElementById("paymentModal").style.display = "flex";
+  };
+
+  // 2. Jika pilih QRIS -> Tampilkan QR Code
+  window.showQRIS = () => {
+      const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
+      document.getElementById("paymentModal").style.display = "none"; // Tutup pilihan
+      
+      // Generate QR Code "Bohongan" tapi datanya dinamis
+      // Kita pakai API qrserver.com. Isinya teks: "Bayar Resto [Total]"
+      const qrData = `PEMBAYARAN RESTO - MEJA ${meja} - TOTAL: ${total}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
+      
+      document.getElementById("qrisTotalDisplay").innerText = "Rp " + total.toLocaleString();
+      document.getElementById("qrisImage").src = qrUrl;
+      document.getElementById("qrisModal").style.display = "flex";
+  };
+
+  // 3. Proses Akhir (Kirim ke Firebase)
+  // Param method: 'Tunai' atau 'QRIS'
+  window.processPayment = async (method) => {
+      // Tutup semua modal dulu
+      document.getElementById("paymentModal").style.display = "none";
+      document.getElementById("qrisModal").style.display = "none";
+
+      const catatan = document.getElementById("catatan").value;
+      const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
+      
+      // Tentukan status awal
+      // Jika QRIS -> Anggap sudah Lunas (karena tadi simulasi sukses)
+      // Jika Tunai -> Menunggu Pembayaran
+      const statusAwal = method === 'QRIS' ? 'Diproses' : 'Menunggu Pembayaran';
+      
+      // Loading
+      showToast("Mengirim pesanan...");
+
+      try {
+        await addDoc(collection(db, "pesanan"), {
+          meja, 
+          items: cart, 
+          catatan, 
+          total, 
+          metodeBayar: method, // Simpan metode bayar
+          status: statusAwal,  // Status dinamis
+          createdAt: serverTimestamp(), 
+          tanggalString: new Date().toLocaleString("id-ID")
+        });
+        
+        if(method === 'QRIS') {
+            await appAlert("✅ Pembayaran Berhasil! Pesanan langsung masuk dapur.");
+        } else {
+            await appAlert("Pesanan Terkirim! Silakan bayar tunai di kasir.");
+        }
+        
+        cart = []; 
+        // Tutup modal keranjang kalau masih terbuka
+        document.getElementById("cartModal").style.display = "none";
+        renderFloatingBar();
+      } catch(e){ await appAlert("Error: " + e.message); }
+  };
+
+  // Helper Tutup Modal
+  window.closePayment = (e) => { 
+      // Cek biar gak ketutup pas klik isinya
+      if(!e || e.target.id === 'paymentModal') document.getElementById("paymentModal").style.display = "none"; 
+  };
+  window.closeQris = () => document.getElementById("qrisModal").style.display = "none";
+ 
   window.gantiKategori = (kat) => { kategoriAktif = kat; render(); };
   window.setMejaManual = async () => { const input = await appPrompt("Nomor Meja:", "Contoh: 5"); if(input) { sessionStorage.setItem("meja", input); location.reload(); } };
   
 </script>
 </body>
 </html>
+
