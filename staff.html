@@ -153,9 +153,9 @@
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  // ============================================
-  //  1. IMPLEMENTASI CLASS (PBO / OOP)
-  // ============================================
+  
+  // OOP
+ 
 
   // Class: Makanan/Minuman
   class MenuItem {
@@ -190,7 +190,6 @@
       isReady() { return this.status === "Siap"; }
   }
 
-  // ============================================
 
   // Global Data
   let pesananList = [];
@@ -427,5 +426,6 @@
 </script>
 </body>
 </html>
+
 
 
