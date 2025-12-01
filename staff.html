@@ -151,7 +151,7 @@
   const db = getFirestore(appFirebase);
 
   // ============================================
-  //  1. IMPLEMENTASI CLASS (BUKTI PBO / OOP)
+  //  1. IMPLEMENTASI CLASS (PBO / OOP)
   // ============================================
 
   // Class: Makanan/Minuman
@@ -163,8 +163,6 @@
           this.kategori = data.kategori;
           this.gambar = data.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
       }
-
-      // Method: Format Rupiah (Encapsulation logic)
       getFormattedPrice() {
           return "Rp " + Number(this.harga).toLocaleString();
       }
@@ -175,15 +173,16 @@
       constructor(id, data) {
           this.id = id;
           this.meja = data.meja;
-          this.items = data.items; // Array of Objects
+          this.items = data.items; 
           this.catatan = data.catatan;
           this.total = data.total;
           this.status = data.status;
+          this.metodeBayar = data.metodeBayar || "Tunai"; // Default Tunai
           this.createdAt = data.createdAt;
           this.tanggalString = data.tanggalString;
       }
 
-      // Method: Cek apakah lunas
+      // Method: Cek apakah lunas (Status bukan Menunggu Pembayaran)
       isPaid() {
           return this.status !== "Menunggu Pembayaran";
       }
@@ -196,7 +195,7 @@
 
   // ============================================
 
-  // Global Data (Array of Objects)
+  // Global Data
   let pesananList = [];
   let menus = [];
   let totalMeja = 5; 
@@ -204,19 +203,17 @@
   let staffPass = "staff123"; 
   let adminPass = "admin123";
 
-  // --- INIT LISTENERS (MENGGUNAKAN CLASS) ---
+  // --- INIT LISTENERS ---
   initListeners();
 
   function initListeners(){
-      // Fetch Pesanan -> Instansiasi Class OrderTicket
       onSnapshot(query(collection(db, "pesanan"), orderBy("createdAt", "desc")), (snap) => {
-          pesananList = snap.docs.map(d => new OrderTicket(d.id, d.data())); // NEW OBJECT
+          pesananList = snap.docs.map(d => new OrderTicket(d.id, d.data())); // Use Class
           refreshCurrentView();
       });
 
-      // Fetch Menu -> Instansiasi Class MenuItem
       onSnapshot(collection(db, "menus"), (snap)=>{
-          menus = snap.docs.map(d => new MenuItem(d.id, d.data())); // NEW OBJECT
+          menus = snap.docs.map(d => new MenuItem(d.id, d.data())); // Use Class
           refreshCurrentView();
       });
 
@@ -234,7 +231,7 @@
       });
   }
 
-  // --- HELPER MODALS ---
+  // --- HELPERS ---
   window.appAlert = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Info"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appConfirm = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Konfirmasi"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); }; document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appPrompt = (msg, placeholder="") => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Input"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.type = "text"; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnCancel">Batal</button><button class="btn-sys btn-sys-primary" id="btnSubmit">Kirim</button>`; document.getElementById('sysModal').style.display = 'flex'; inp.focus(); document.getElementById('btnCancel').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(null); }; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
@@ -269,13 +266,12 @@
       else if(role === 'admin') { title.innerText = "📊 Admin Dashboard"; renderAdmin(el); }
   }
 
-  // 1. RENDER DAPUR (Pakai Object Property)
+  // 1. RENDER DAPUR
   function renderDapur(el){
       const tasks = pesananList.filter(p => p.status === 'Diproses' || p.status === 'Siap');
       if(!tasks.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">😴 Tidak ada antrian masak</div>`; return; }
       let h = `<div class="ticket-grid">`;
       tasks.forEach(p => {
-          // Panggil Method Class isReady()
           let isReady = p.isReady();
           h += `<div class="ticket" style="border-top: 5px solid ${isReady?'var(--success)':'var(--accent)'}">
               <div class="ticket-header ${isReady?'bg-ready':'bg-process'}"><span>Meja ${p.meja}</span><small>${p.tanggalString.split(',')[1]||''}</small></div>
@@ -287,27 +283,38 @@
       h += `</div>`; el.innerHTML = h;
   }
 
-  // 2. RENDER KASIR (Pakai Object Property)
+  // 2. RENDER KASIR (BUG FIXED)
   function renderKasir(el){
       const orders = pesananList.filter(p => p.status !== 'Selesai');
       if(!orders.length) { el.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa">✨ Semua transaksi beres</div>`; return; }
       let h = `<div class="ticket-grid">`;
-      let isUnpaid = p.status === "Menunggu Pembayaran";
-  // Cek metode bayar (kalau data lama ga ada metode, anggap tunai)
-      let payMethod = p.metodeBayar || "Tunai";
+      
       orders.forEach(p => {
-          // Panggil Method Class isPaid()
-          let isUnpaid = !p.isPaid(); 
-          h += `<div class="ticket"><div class="ticket-header" style="background:#f8f9fa"><span>Meja ${p.meja}</span><span class="btn" style="padding:2px 8px; font-size:10px; ${isUnpaid?'background:#ffeaa7; color:#d35400':'background:#eee'}">${p.status}</span></div>
-              <div class="ticket-body"><div style="font-size:24px; font-weight:700; margin-bottom:10px">Rp ${p.total.toLocaleString()}</div>
-              <small style="color:#888">${p.items.length} Menu Item</small><hr style="border:0; border-top:1px dashed #eee; margin:10px 0"><small style="color:#b2bec3">${p.items.map(i=>i.nama).join(', ')}</small></div>
-              <div class="ticket-footer">${isUnpaid ? `<button class="btn btn-green" style="width:100%" onclick="terimaBayar('${p.id}')">💰 Terima Rp ${p.total.toLocaleString()}</button>` : `<div style="text-align:center; color:#b2bec3; font-size:12px">Lunas</div>`}
-              ${p.status === 'Siap' ? `<button class="btn btn-blue" style="width:100%; margin-top:5px" onclick="ubahStatus('${p.id}','Selesai')">✅ Selesai (Diambil)</button>` : ''}</div></div>`;
+          let isUnpaid = !p.isPaid(); // Menggunakan Method Class
+          let payMethod = p.metodeBayar; // Ambil properti object
+          
+          h += `<div class="ticket"><div class="ticket-header" style="background:#f8f9fa">
+                  <span>Meja ${p.meja}</span>
+                  <span class="btn" style="padding:2px 8px; font-size:10px; ${isUnpaid?'background:#ffeaa7; color:#d35400':'background:#eee'}">${p.status}</span>
+              </div>
+              <div class="ticket-body">
+                  <div style="font-size:24px; font-weight:700; margin-bottom:5px">Rp ${p.total.toLocaleString()}</div>
+                  <div style="font-size:11px; color:#555; margin-bottom:10px">Via: ${payMethod}</div>
+                  <hr style="border:0; border-top:1px dashed #eee; margin:10px 0">
+                  <small style="color:#b2bec3">${p.items.map(i=>i.nama).join(', ')}</small>
+              </div>
+              <div class="ticket-footer">
+                  ${isUnpaid 
+                    ? `<button class="btn btn-green" style="width:100%" onclick="terimaBayar('${p.id}')">💰 Terima Rp ${p.total.toLocaleString()}</button>` 
+                    : `<div style="text-align:center; color:#b2bec3; font-size:12px; margin-bottom:5px">Lunas</div>`
+                  }
+                  ${p.status === 'Siap' ? `<button class="btn btn-blue" style="width:100%" onclick="ubahStatus('${p.id}','Selesai')">✅ Selesai (Diambil)</button>` : ''}
+              </div></div>`;
       });
       h += `</div>`; el.innerHTML = h;
   }
 
-  // 3. RENDER ADMIN (Pakai Method MenuItem)
+  // 3. RENDER ADMIN
   function renderAdmin(el){
       let totalUang = 0; let totalTransaksi = 0;
       pesananList.forEach(p => { if(p.status === 'Selesai'){ totalUang += p.total; totalTransaksi++; } });
@@ -412,4 +419,3 @@
 </script>
 </body>
 </html>
-
