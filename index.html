@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>RestoApp</title>
+<title>Menu Restoran (Final OOP)</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { 
@@ -18,20 +18,18 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { margin: 0; font-family: 'Poppins', sans-serif; background: #fafafa; color: var(--dark); padding-bottom: 100px; }
 
-  /* HEADER */
+  /* HEADER & HERO */
   header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
   .header-content { display: flex; justify-content: space-between; align-items: center; }
   .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: default; }
-  
-  /* HERO & SEARCH */
   .hero-text { padding: 20px; }
   .hero-text h1 { margin: 0; font-size: 24px; color: var(--dark); }
   .hero-text p { margin: 5px 0 0; color: #747d8c; font-size: 14px; }
+
+  /* SEARCH & CATEGORY */
   .search-container { padding: 0 20px; margin-bottom: 15px; }
   .search-input { width: 100%; padding: 14px 20px; border-radius: 12px; border: none; background: var(--grey); font-family: inherit; font-size: 14px; outline: none; transition: 0.3s; }
   .search-input:focus { background: #fff; box-shadow: 0 0 0 2px var(--primary); }
-
-  /* CATEGORY */
   .cat-wrapper { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 15px 20px; scrollbar-width: none; }
   .cat-wrapper::-webkit-scrollbar { display: none; }
   .cat-btn { background: var(--white); border: 1px solid #eee; padding: 10px 20px; border-radius: 25px; white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 500; color: #57606f; transition: 0.2s; flex-shrink: 0; }
@@ -48,18 +46,18 @@
   .add-btn { background: var(--grey); color: var(--dark); border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-top: 5px; }
   .add-btn:hover { background: var(--primary); color: #fff; }
 
-  /* STOK HABIS STYLE */
-  .card-habis .menu-img { filter: grayscale(100%); opacity: 0.7; }
-  .card-habis .menu-info { opacity: 0.6; }
-  .btn-habis { background: #eee !important; color: #999 !important; cursor: not-allowed; }
-  .badge-habis { position: absolute; top: 10px; left: 10px; background: #d63031; color: white; padding: 4px 10px; font-size: 10px; font-weight: bold; border-radius: 4px; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+  /* STOK HABIS STYLE (NEW) */
+  .card-habis .menu-img { filter: grayscale(100%); opacity: 0.6; }
+  .card-habis .menu-content { opacity: 0.5; }
+  .btn-habis { background: #eee !important; color: #aaa !important; cursor: not-allowed; }
+  .badge-habis { position: absolute; top: 10px; left: 10px; background: #d63031; color: white; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 4px; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
   /* FLOATING BAR */
   .floating-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 900; display: flex; flex-direction: column; gap: 10px; }
   .status-card { background: var(--dark); color: #fff; padding: 15px; border-radius: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; cursor: pointer; }
   .cart-btn-floating { background: var(--primary); color: #fff; padding: 16px; border-radius: 14px; font-weight: 600; text-align: center; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 
-  /* MODALS GENERIC */
+  /* MODALS */
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
   .modal-sheet { background:#fff; width:100%; border-radius: 24px 24px 0 0; padding:25px; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto; position: absolute; bottom: 0; }
   .modal-popup { background:#fff; width:85%; max-width:350px; border-radius: 20px; padding:25px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -71,14 +69,12 @@
   @keyframes popIn { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
   @keyframes zoomIn { from{transform:scale(0.5); opacity:0} to{transform:scale(1); opacity:1} }
 
-  /* TOAST */
   #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 90%; max-width: 400px; }
   .toast { background: rgba(44, 62, 80, 0.95); color: #fff; padding: 12px 20px; border-radius: 50px; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: fadeDown 0.4s ease; }
   @keyframes fadeDown { from{opacity:0; transform:translateY(-20px)} to{opacity:1; transform:translateY(0)} }
   
   .btn-sys { padding: 12px; border-radius: 10px; border: 0; font-weight: 600; font-size: 14px; flex: 1; cursor: pointer; }
-  .btn-sys-primary { background: var(--primary); color: #fff; }
-  .btn-sys-ghost { background: #f1f2f6; color: #555; }
+  .btn-sys-primary { background: var(--primary); color: #fff; } .btn-sys-ghost { background: #f1f2f6; color: #555; }
   .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
   .detail-total { display: flex; justify-content: space-between; margin-top: 15px; font-size: 16px; font-weight: 700; }
 </style>
@@ -103,17 +99,77 @@
 
 <div class="floating-bar" id="floatingArea"></div>
 
-<div id="cartModal" class="modal-overlay" onclick="closeCart(event)" style="align-items: flex-end;"><div class="modal-sheet" onclick="event.stopPropagation()"><div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3 style="margin:0">Keranjang Saya</h3><span onclick="toggleCart()" style="cursor:pointer; font-size:20px">✕</span></div><div id="cartList"></div><textarea id="catatan" class="search-input" style="background:#fff; border:1px solid #eee; margin-top:15px" placeholder="Tambah catatan (opsional)..."></textarea><button onclick="checkout()" style="width:100%; background:var(--primary); color:#fff; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:16px">Pesan Sekarang</button></div></div>
-<div id="orderDetailModal" class="modal-overlay" onclick="closeDetail(event)" style="align-items: flex-end;"><div class="modal-sheet" onclick="event.stopPropagation()"><div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3 style="margin:0">Rincian Pesanan</h3><span onclick="closeDetail()" style="cursor:pointer; font-size:20px">✕</span></div><div id="orderDetailContent"></div><button onclick="closeDetail()" style="width:100%; background:#eee; color:#333; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:14px">Tutup</button></div></div>
-<div id="sysModal" class="modal-overlay"><div class="modal-popup" onclick="event.stopPropagation()"><h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3><p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p><input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center"><div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div></div></div>
-<div id="imgModal" class="modal-overlay" onclick="closeImage()"><div class="modal-image-box" onclick="event.stopPropagation()"><div class="close-img-btn" onclick="closeImage()">✕</div><img id="previewImage" src=""></div></div>
+<div id="cartModal" class="modal-overlay" onclick="closeCart(event)" style="align-items: flex-end;">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0">Keranjang Saya</h3>
+            <span onclick="toggleCart()" style="cursor:pointer; font-size:20px">✕</span>
+        </div>
+        <div id="cartList"></div>
+        <textarea id="catatan" class="search-input" style="background:#fff; border:1px solid #eee; margin-top:15px" placeholder="Tambah catatan (opsional)..."></textarea>
+        <button onclick="checkout()" style="width:100%; background:var(--primary); color:#fff; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:16px">Pesan Sekarang</button>
+    </div>
+</div>
 
-<div id="paymentModal" class="modal-overlay" onclick="closePayment()"><div class="modal-popup" onclick="event.stopPropagation()" style="text-align:left"><h3 style="margin-top:0">💳 Pilih Pembayaran</h3><p style="color:#666; font-size:13px; margin-bottom:15px">Total Tagihan: <b id="payTotalDisplay" style="color:var(--primary); font-size:16px"></b></p><div onclick="processPayment('Tunai')" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer; margin-bottom:10px; transition:0.2s"><span style="font-size:24px">💵</span><div><div style="font-weight:600">Tunai (Kasir)</div><div style="font-size:11px; color:#aaa">Bayar manual di meja kasir</div></div></div><div onclick="showQRIS()" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer"><span style="font-size:24px">📱</span><div><div style="font-weight:600">QRIS / E-Wallet</div><div style="font-size:11px; color:#aaa">Scan pakai GoPay, OVO, Dana</div></div></div></div></div>
-<div id="qrisModal" class="modal-overlay"><div class="modal-popup" onclick="event.stopPropagation()"><h3 style="margin:0">Scan QRIS</h3><p style="font-size:12px; color:#666">Total: <b id="qrisTotalDisplay"></b></p><img id="qrisImage" src="" style="width:200px; height:200px; margin:10px 0; border:1px solid #eee; padding:10px; border-radius:8px"><p style="font-size:11px; color:#aaa; margin-top:0">Scan menggunakan aplikasi pembayaran apa saja.</p><button class="btn-sys btn-sys-primary" onclick="processPayment('QRIS')">✅ Simulasi Bayar Sukses</button><button class="btn-sys btn-sys-ghost" onclick="closeQris()" style="margin-top:10px">Batal</button></div></div>
+<div id="orderDetailModal" class="modal-overlay" onclick="closeDetail(event)" style="align-items: flex-end;">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0">Rincian Pesanan</h3>
+            <span onclick="closeDetail()" style="cursor:pointer; font-size:20px">✕</span>
+        </div>
+        <div id="orderDetailContent"></div>
+        <button onclick="closeDetail()" style="width:100%; background:#eee; color:#333; padding:15px; border:0; border-radius:12px; font-weight:600; margin-top:15px; font-size:14px">Tutup</button>
+    </div>
+</div>
+
+<div id="sysModal" class="modal-overlay">
+    <div class="modal-popup" onclick="event.stopPropagation()">
+        <h3 id="sysTitle" style="margin:0 0 10px 0; font-size:18px;">Notifikasi</h3>
+        <p id="sysMsg" style="color:#666; font-size:14px; margin:0 0 20px 0; line-height:1.5"></p>
+        <input id="sysInput" class="search-input" style="display:none; margin-bottom:20px; background:#f1f2f6; text-align:center">
+        <div id="sysButtons" style="display:flex; gap:10px; justify-content:center;"></div>
+    </div>
+</div>
+
+<div id="imgModal" class="modal-overlay" onclick="closeImage()">
+    <div class="modal-image-box" onclick="event.stopPropagation()">
+        <div class="close-img-btn" onclick="closeImage()">✕</div>
+        <img id="previewImage" src="">
+    </div>
+</div>
+
+<div id="paymentModal" class="modal-overlay" onclick="closePayment()">
+    <div class="modal-popup" onclick="event.stopPropagation()" style="text-align:left">
+        <h3 style="margin-top:0">💳 Pilih Pembayaran</h3>
+        <p style="color:#666; font-size:13px; margin-bottom:15px">Total Tagihan: <b id="payTotalDisplay" style="color:var(--primary); font-size:16px"></b></p>
+        
+        <div onclick="processPayment('Tunai')" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer; margin-bottom:10px; transition:0.2s">
+            <span style="font-size:24px">💵</span>
+            <div><div style="font-weight:600">Tunai (Kasir)</div><div style="font-size:11px; color:#aaa">Bayar manual di meja kasir</div></div>
+        </div>
+
+        <div onclick="showQRIS()" style="border:1px solid #eee; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; cursor:pointer">
+            <span style="font-size:24px">📱</span>
+            <div><div style="font-weight:600">QRIS / E-Wallet</div><div style="font-size:11px; color:#aaa">Scan pakai GoPay, OVO, Dana</div></div>
+        </div>
+    </div>
+</div>
+
+<div id="qrisModal" class="modal-overlay">
+    <div class="modal-popup" onclick="event.stopPropagation()">
+        <h3 style="margin:0">Scan QRIS</h3>
+        <p style="font-size:12px; color:#666">Total: <b id="qrisTotalDisplay"></b></p>
+        <img id="qrisImage" src="" style="width:200px; height:200px; margin:10px 0; border:1px solid #eee; padding:10px; border-radius:8px">
+        <p style="font-size:11px; color:#aaa; margin-top:0">Scan menggunakan aplikasi pembayaran apa saja.</p>
+        <button class="btn-sys btn-sys-primary" onclick="processPayment('QRIS')">✅ Simulasi Bayar Sukses</button>
+        <button class="btn-sys btn-sys-ghost" onclick="closeQris()" style="margin-top:10px">Batal</button>
+    </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCF7wEQhPICgOr9gKuBqGaYdipZiu1WRDo",
@@ -128,9 +184,9 @@
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  
-  //  OOP class
-  
+  // ============================================
+  //  1. DEFINISI CLASS OOP
+  // ============================================
 
   class MenuItem {
       constructor(id, data) {
@@ -139,22 +195,9 @@
           this.harga = data.harga;
           this.kategori = data.kategori;
           this.gambar = data.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
-          this.stok = data.stok !== false; // Property Stok
+          this.stok = data.stok !== false; // Default true jika undefined
       }
       getFormattedPrice() { return "Rp " + Number(this.harga).toLocaleString(); }
-  }
-
-  class OrderTicket {
-      constructor(id, data) {
-          this.id = id;
-          this.meja = data.meja;
-          this.items = data.items; 
-          this.catatan = data.catatan;
-          this.total = data.total;
-          this.status = data.status;
-          this.metodeBayar = data.metodeBayar;
-          this.tanggalString = data.tanggalString;
-      }
   }
 
   // ============================================
@@ -164,21 +207,23 @@
   let meja = new URLSearchParams(location.search).get("table") || sessionStorage.getItem("meja");
   let kategoriAktif = "Semua"; let lastStatusMap = {}; 
 
-  // --- HELPERS (SYSTEM MODALS) ---
+  // --- HELPERS SYSTEM ---
   window.appAlert = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Info"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnOk">Oke</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnOk').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appConfirm = (msg) => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Konfirmasi"; document.getElementById('sysMsg').innerText = msg; document.getElementById('sysInput').style.display = 'none'; document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-ghost" id="btnNo">Batal</button><button class="btn-sys btn-sys-primary" id="btnYes">Ya</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnNo').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(false); }; document.getElementById('btnYes').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(true); }; }); };
   window.appPrompt = (msg, placeholder="...") => { return new Promise(resolve => { document.getElementById('sysTitle').innerText = "Input"; document.getElementById('sysMsg').innerText = msg; const inp = document.getElementById('sysInput'); inp.style.display = 'block'; inp.value = ""; inp.placeholder = placeholder; inp.focus(); document.getElementById('sysButtons').innerHTML = `<button class="btn-sys btn-sys-primary" id="btnSubmit">Simpan</button>`; document.getElementById('sysModal').style.display = 'flex'; document.getElementById('btnSubmit').onclick = () => { document.getElementById('sysModal').style.display = 'none'; resolve(inp.value); }; }); };
 
   // --- LISTENERS ---
-  onSnapshot(collection(db, "menus"), (snapshot) => { 
+  onSnapshot(collection(db, "menus"), (snapshot) => {
+    // Instansiasi Class MenuItem
     menus = snapshot.docs.map(d => new MenuItem(d.id, d.data())); 
-    menus.sort((a,b) => a.nama.localeCompare(b.nama)); 
+    menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
   });
 
   onSnapshot(collection(db, "pesanan"), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data(); const orderId = change.doc.id;
+        const data = change.doc.data();
+        const orderId = change.doc.id;
         if (meja && data.meja == meja) {
             if (change.type === "modified") {
                 if (data.status === "Diproses" && lastStatusMap[orderId] !== "Diproses") { showToast(`👨‍🍳 Pesanan sedang dimasak!`); playSound(); }
@@ -187,7 +232,7 @@
             lastStatusMap[orderId] = data.status;
         }
     });
-    const allData = snapshot.docs.map(d => new OrderTicket(d.id, d.data()));
+    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     if(meja) myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     renderFloatingBar();
   });
@@ -195,7 +240,7 @@
   function showToast(msg) { const container = document.getElementById("toast-container"); const el = document.createElement("div"); el.className = "toast"; el.innerHTML = `<span>🔔</span> ${msg}`; container.appendChild(el); setTimeout(() => el.remove(), 4000); }
   function playSound() { const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); audio.play().catch(e => console.log("Audio blocked")); }
 
-  // --- RENDER ---
+  // --- RENDER UTAMA ---
   window.render = () => {
     const mejaEl = document.getElementById("mejaInfo");
     if(mejaEl) mejaEl.innerText = meja ? `Meja ${meja}` : "Pilih Meja";
@@ -224,6 +269,7 @@
         let isDisabled = !m.stok;
         let cardClass = isDisabled ? "menu-card searchable-item card-habis" : "menu-card searchable-item";
         let btnClass = isDisabled ? "add-btn btn-habis" : "add-btn";
+        // Jika stok habis, tombol memanggil notifikasi stok habis. Jika ada, tambah ke keranjang
         let btnAction = isDisabled ? "stokHabisNotif()" : `addToCart('${m.id}', '${m.nama}', ${m.harga})`;
         let btnText = isDisabled ? "✕" : "+";
         let badge = isDisabled ? `<div class="badge-habis">HABIS</div>` : "";
@@ -238,8 +284,11 @@
             </div>
         </div>`;
     });
-    html += `</div>`; document.getElementById("app").innerHTML = html;
+
+    html += `</div>`; 
+    document.getElementById("app").innerHTML = html;
     
+    // Restore search state
     const searchEl = document.getElementById("searchInput");
     if(searchEl && window.currentSearchTerm) { searchEl.value = window.currentSearchTerm; realtimeSearch(window.currentSearchTerm); }
   };
@@ -247,8 +296,9 @@
   // --- ACTIONS ---
   window.openImage = (url) => { document.getElementById('previewImage').src = url; document.getElementById('imgModal').style.display = 'flex'; }
   window.closeImage = () => { document.getElementById('imgModal').style.display = 'none'; }
-  window.stokHabisNotif = () => { showToast("⛔ Maaf, stok menu ini sedang habis!"); };
   
+  window.stokHabisNotif = () => { showToast("⛔ Maaf, stok menu ini sedang habis!"); };
+
   window.realtimeSearch = (val) => {
       window.currentSearchTerm = val.toLowerCase();
       document.querySelectorAll(".searchable-item").forEach(el => {
@@ -294,8 +344,8 @@
   window.addToCart = (id, nama, harga) => { const exist = cart.find(c => c.id === id); if(exist) exist.qty++; else cart.push({id, nama, harga, qty:1}); renderFloatingBar(); showToast(`"${nama}" masuk keranjang`); };
   window.updateQty = (id, delta) => { const item = cart.find(c => c.id === id); if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(c => c.id !== id); renderCartList(); renderFloatingBar(); } };
   
+  // --- PAYMENT LOGIC ---
   window.checkout = async () => { if(!cart.length) return; 
-    // Show Payment Modal
     const total = cart.reduce((s,i)=>s+(i.harga*i.qty),0);
     document.getElementById("payTotalDisplay").innerText = "Rp " + total.toLocaleString();
     document.getElementById("paymentModal").style.display = "flex";
@@ -339,5 +389,3 @@
 </script>
 </body>
 </html>
-
-
