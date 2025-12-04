@@ -186,9 +186,9 @@
   const appFirebase = initializeApp(firebaseConfig);
   const db = getFirestore(appFirebase);
 
-  // ============================================
-  //  1. DEFINISI CLASS OOP (INI YANG PENTING!)
-  // ============================================
+
+  //  1. DEFINISI CLASS OOP
+ 
 
   class MenuItem {
       constructor(id, data) {
@@ -232,7 +232,7 @@
 
   // --- LISTENERS ---
   onSnapshot(collection(db, "menus"), (snapshot) => {
-    // Instansiasi Class MenuItem (OOP)
+    // Instansiasi Class MenuItem 
     menus = snapshot.docs.map(d => new MenuItem(d.id, d.data())); 
     menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
@@ -250,7 +250,7 @@
             lastStatusMap[orderId] = data.status;
         }
     });
-    // Instansiasi Class OrderTicket (OOP)
+    // Instansiasi Class OrderTicket 
     const allData = snapshot.docs.map(d => new OrderTicket(d.id, d.data()));
     if(meja) myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     renderFloatingBar();
@@ -408,3 +408,4 @@
 </script>
 </body>
 </html>
+
