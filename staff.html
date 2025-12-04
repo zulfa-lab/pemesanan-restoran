@@ -52,7 +52,7 @@
     <div class="role-grid">
         <div class="role-card" onclick="bukaHalaman('kasir')"><span class="role-icon">🖥️</span><div style="font-weight:600">Kasir</div></div>
         <div class="role-card" onclick="bukaHalaman('dapur')"><span class="role-icon">👨‍🍳</span><div style="font-weight:600">Dapur</div></div>
-        <div class="role-card" onclick="bukaHalaman('admin')" style="border-top: 3px solid var(--danger)"><span class="role-icon">⚙️</span><div style="font-weight:600">Owner</div></div>
+        <div class="role-card" onclick="bukaHalaman('admin')" style="border-top: 3px solid var(--danger)"><span class="role-icon">⚙️</span><div style="font-weight:600">Admin</div></div>
     </div>
 </div>
 
@@ -171,7 +171,7 @@
 
   window.bukaHalaman = async (role) => {
       if(role === 'admin') {
-          let input = await appPassword("Masukkan Password Owner:");
+          let input = await appPassword("Masukkan Password Admin:");
           const currentAdmin = new Admin(adminPass); // Instansiasi Admin
           if(!currentAdmin.validate(input)) return await appAlert("Akses Ditolak.");
       }
@@ -264,7 +264,7 @@
                   <p style="margin:0 0 10px 0; font-size:12px; color:#666">Geser ➡</p>
                   <div class="scroll-h" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;">${Array.from({length:totalMeja}, (_, i) => i + 1).map(i => `<div style="min-width:100px; text-align:center; border:1px solid #eee; padding:10px; border-radius:8px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${window.location.href.replace("staff.html", "index.html")}?table=${i}`)}" style="width:100%; display:block"><small>Meja ${i}</small></div>`).join('')}</div>
                   <hr><div style="margin-top:10px"><label>Pass Staff:</label><div style="display:flex; gap:5px"><input id="newStaffPass" placeholder="${staffPass}" style="margin:0"><button class="btn btn-blue" onclick="gantiPass('staff')">Up</button></div></div>
-                  <div style="margin-top:10px"><label>Pass Owner:</label><div style="display:flex; gap:5px"><input id="newAdminPass" placeholder="${adminPass}" style="margin:0"><button class="btn btn-red" onclick="gantiPass('admin')">Up</button></div></div>
+                  <div style="margin-top:10px"><label>Pass Admin:</label><div style="display:flex; gap:5px"><input id="newAdminPass" placeholder="${adminPass}" style="margin:0"><button class="btn btn-red" onclick="gantiPass('admin')">Up</button></div></div>
                   <hr><button class="btn btn-red" style="width:100%" onclick="resetData()">⚠️ HAPUS DATA</button>
               </div>
           </div>
@@ -296,3 +296,4 @@
 </script>
 </body>
 </html>
+
