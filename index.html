@@ -18,18 +18,20 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { margin: 0; font-family: 'Poppins', sans-serif; background: #fafafa; color: var(--dark); padding-bottom: 100px; }
 
-  /* HEADER & HERO */
+  /* HEADER */
   header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
   .header-content { display: flex; justify-content: space-between; align-items: center; }
   .table-badge { background: var(--dark); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: default; }
+  
+  /* HERO & SEARCH */
   .hero-text { padding: 20px; }
   .hero-text h1 { margin: 0; font-size: 24px; color: var(--dark); }
   .hero-text p { margin: 5px 0 0; color: #747d8c; font-size: 14px; }
-
-  /* SEARCH & CATEGORY */
   .search-container { padding: 0 20px; margin-bottom: 15px; }
   .search-input { width: 100%; padding: 14px 20px; border-radius: 12px; border: none; background: var(--grey); font-family: inherit; font-size: 14px; outline: none; transition: 0.3s; }
   .search-input:focus { background: #fff; box-shadow: 0 0 0 2px var(--primary); }
+
+  /* CATEGORY */
   .cat-wrapper { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 15px 20px; scrollbar-width: none; }
   .cat-wrapper::-webkit-scrollbar { display: none; }
   .cat-btn { background: var(--white); border: 1px solid #eee; padding: 10px 20px; border-radius: 25px; white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 500; color: #57606f; transition: 0.2s; flex-shrink: 0; }
@@ -46,7 +48,7 @@
   .add-btn { background: var(--grey); color: var(--dark); border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-top: 5px; }
   .add-btn:hover { background: var(--primary); color: #fff; }
 
-  /* STOK HABIS STYLE (NEW) */
+  /* STOK HABIS STYLE */
   .card-habis .menu-img { filter: grayscale(100%); opacity: 0.6; }
   .card-habis .menu-content { opacity: 0.5; }
   .btn-habis { background: #eee !important; color: #aaa !important; cursor: not-allowed; }
@@ -57,7 +59,7 @@
   .status-card { background: var(--dark); color: #fff; padding: 15px; border-radius: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; cursor: pointer; }
   .cart-btn-floating { background: var(--primary); color: #fff; padding: 16px; border-radius: 14px; font-weight: 600; text-align: center; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.4); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 
-  /* MODALS */
+  /* MODALS GENERIC */
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
   .modal-sheet { background:#fff; width:100%; border-radius: 24px 24px 0 0; padding:25px; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto; position: absolute; bottom: 0; }
   .modal-popup { background:#fff; width:85%; max-width:350px; border-radius: 20px; padding:25px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -185,7 +187,7 @@
   const db = getFirestore(appFirebase);
 
   // ============================================
-  //  1. DEFINISI CLASS OOP
+  //  1. DEFINISI CLASS OOP (INI YANG PENTING!)
   // ============================================
 
   class MenuItem {
@@ -195,9 +197,25 @@
           this.harga = data.harga;
           this.kategori = data.kategori;
           this.gambar = data.gambar || 'https://cdn-icons-png.flaticon.com/512/1147/1147832.png';
-          this.stok = data.stok !== false; // Default true jika undefined
+          this.stok = data.stok !== false; // Default true
       }
-      getFormattedPrice() { return "Rp " + Number(this.harga).toLocaleString(); }
+      // Method: Format Rupiah
+      getFormattedPrice() {
+          return "Rp " + Number(this.harga).toLocaleString();
+      }
+  }
+
+  class OrderTicket {
+      constructor(id, data) {
+          this.id = id;
+          this.meja = data.meja;
+          this.items = data.items; 
+          this.catatan = data.catatan;
+          this.total = data.total;
+          this.status = data.status;
+          this.metodeBayar = data.metodeBayar;
+          this.tanggalString = data.tanggalString;
+      }
   }
 
   // ============================================
@@ -214,7 +232,7 @@
 
   // --- LISTENERS ---
   onSnapshot(collection(db, "menus"), (snapshot) => {
-    // Instansiasi Class MenuItem
+    // Instansiasi Class MenuItem (OOP)
     menus = snapshot.docs.map(d => new MenuItem(d.id, d.data())); 
     menus.sort((a,b) => a.nama.localeCompare(b.nama));
     render(); 
@@ -232,7 +250,8 @@
             lastStatusMap[orderId] = data.status;
         }
     });
-    const allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Instansiasi Class OrderTicket (OOP)
+    const allData = snapshot.docs.map(d => new OrderTicket(d.id, d.data()));
     if(meja) myOrders = allData.filter(p => p.meja == meja && p.status !== 'Selesai');
     renderFloatingBar();
   });
@@ -269,11 +288,11 @@
         let isDisabled = !m.stok;
         let cardClass = isDisabled ? "menu-card searchable-item card-habis" : "menu-card searchable-item";
         let btnClass = isDisabled ? "add-btn btn-habis" : "add-btn";
-        // Jika stok habis, tombol memanggil notifikasi stok habis. Jika ada, tambah ke keranjang
         let btnAction = isDisabled ? "stokHabisNotif()" : `addToCart('${m.id}', '${m.nama}', ${m.harga})`;
         let btnText = isDisabled ? "✕" : "+";
         let badge = isDisabled ? `<div class="badge-habis">HABIS</div>` : "";
 
+        // PANGGIL METHOD CLASS (m.getFormattedPrice())
         html += `
         <div class="${cardClass}" data-name="${m.nama.toLowerCase()}">
             ${badge}
